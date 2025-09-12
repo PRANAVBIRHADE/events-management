@@ -127,7 +127,7 @@ const LandingPage: React.FC = () => {
             <HStack spacing={3}>
               <Icon as={FaGraduationCap} color="#4ade80" boxSize={8} />
               <Text color="white" fontSize="xl" fontWeight="bold">
-                College Event Portal
+                MPGI SOE
               </Text>
             </HStack>
 
@@ -246,7 +246,7 @@ const LandingPage: React.FC = () => {
               mb={4}
               lineHeight="1.1"
             >
-              Welcome to Our College
+              Welcome to MPGI SOE
             </Heading>
             
             <Heading
