@@ -45,6 +45,16 @@ export interface Event {
   max_capacity?: number;
   current_registrations: number;
   is_active: boolean;
+  category: 'sports' | 'cultural' | 'technical' | 'academic' | 'social' | 'general';
+  event_type: 'free' | 'paid' | 'invitation_only';
+  price: number;
+  registration_deadline?: string;
+  image_url?: string;
+  organizer?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  requirements?: string;
+  tags?: string[];
   created_at: string;
   updated_at: string;
 }

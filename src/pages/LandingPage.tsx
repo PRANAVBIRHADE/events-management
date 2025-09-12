@@ -133,22 +133,52 @@ const LandingPage: React.FC = () => {
 
             {/* Navigation Menu */}
             <HStack spacing={8} display={{ base: "none", md: "flex" }}>
-              <Button variant="ghost" color="white" _hover={{ bg: "#4ade80", color: "white" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "#4ade80", color: "white" }}
+                onClick={() => navigate('/')}
+              >
                 Home
               </Button>
-              <Button variant="ghost" color="white" _hover={{ bg: "rgba(255,255,255,0.1)" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/events')}
+              >
                 Events
               </Button>
-              <Button variant="ghost" color="white" _hover={{ bg: "rgba(255,255,255,0.1)" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/events?category=sports')}
+              >
                 Sports
               </Button>
-              <Button variant="ghost" color="white" _hover={{ bg: "rgba(255,255,255,0.1)" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/events?category=cultural')}
+              >
                 Cultural
               </Button>
-              <Button variant="ghost" color="white" _hover={{ bg: "rgba(255,255,255,0.1)" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/events?category=technical')}
+              >
                 Technical
               </Button>
-              <Button variant="ghost" color="white" _hover={{ bg: "rgba(255,255,255,0.1)" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/contact')}
+              >
                 Contact
               </Button>
             </HStack>
@@ -183,25 +213,14 @@ const LandingPage: React.FC = () => {
                   </MenuList>
                 </Menu>
               ) : (
-                <>
-                  <Button
-                    bg="#4ade80"
-                    color="white"
-                    _hover={{ bg: "#22c55e" }}
-                    onClick={handleUserSignup}
-                  >
-                    Register
-                  </Button>
-                  <Button
-                    variant="outline"
-                    color="white"
-                    borderColor="white"
-                    _hover={{ bg: "rgba(255,255,255,0.1)" }}
-                    onClick={handleUserLogin}
-                  >
-                    Admin
-                  </Button>
-                </>
+                <Button
+                  bg="#4ade80"
+                  color="white"
+                  _hover={{ bg: "#22c55e" }}
+                  onClick={handleUserSignup}
+                >
+                  Register
+                </Button>
               )}
             </HStack>
           </Flex>

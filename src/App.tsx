@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 
 // Import pages
 import LandingPage from './pages/LandingPage';
+import EventsPage from './pages/EventsPage';
+import ContactPage from './pages/ContactPage';
 import PaymentPage from './pages/PaymentPage';
 import TicketPage from './pages/TicketPage';
 import FresherHypePage from './pages/FresherHypePage';
@@ -99,6 +101,8 @@ function App() {
           >
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               <Route path="/payment" element={<PaymentPage />} />
               <Route path="/ticket" element={<TicketPage />} />
               <Route path="/fresher-hype" element={<FresherHypePage />} />
