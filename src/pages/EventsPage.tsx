@@ -24,6 +24,11 @@ import {
   CardBody,
   CardHeader,
   Divider,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Avatar,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -39,7 +44,10 @@ import {
   FaArrowLeft,
   FaTicketAlt,
   FaStar,
-  FaTag
+  FaTag,
+  FaChevronDown,
+  FaUser,
+  FaSignOutAlt,
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Event } from '../lib/supabase';
@@ -49,7 +57,7 @@ const MotionCard = motion(Card);
 
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -180,7 +188,100 @@ const EventsPage: React.FC = () => {
       minH="100vh" 
       bg="linear-gradient(90deg, #1a365d 0%, #2d3748 50%, #553c9a 100%)"
     >
-      <Container maxW="container.xl" py={8}>
+      <Container maxW="container.xl" py={4}>
+        {/* Header Navigation */}
+        <MotionBox
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          mb={8}
+        >
+          <Flex justify="space-between" align="center" py={4}>
+            {/* Logo */}
+            <HStack spacing={3}>
+              <Icon as={FaGraduationCap} color="#4ade80" boxSize={8} />
+              <Text color="white" fontSize="xl" fontWeight="bold">
+                MPGI SOE
+              </Text>
+            </HStack>
+            {/* Navigation Menu */}
+            <HStack spacing={8} display={{ base: "none", md: "flex" }}>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "#4ade80", color: "white" }}
+                onClick={() => navigate('/')}>
+                Home
+              </Button>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/events')}>
+                Events
+              </Button>
+              <Button 
+                variant="ghost" 
+                color="white" 
+                _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                onClick={() => navigate('/contact')}>
+                Contact
+              </Button>
+            </HStack>
+            {/* Auth Buttons */}
+            <HStack spacing={4}>
+              {user ? (
+                <Menu>
+                  <MenuButton
+                    as={Button}
+                    variant="outline"
+                    color="white"
+                    borderColor="white"
+                    _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                    rightIcon={<Icon as={FaChevronDown} />}
+                  >
+                    <HStack spacing={2}>
+                      <Avatar size="sm" name={user.user_metadata?.full_name || user.email} />
+                      <Text>{user.user_metadata?.full_name || 'User'}</Text>
+                    </HStack>
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem icon={<Icon as={FaUser} />} onClick={() => navigate('/user-profile')}>
+                      My Profile
+                    </MenuItem>
+                    <MenuItem icon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/user-dashboard')}>
+                      My Tickets
+                    </MenuItem>
+                    <MenuItem icon={<Icon as={FaSignOutAlt} />} onClick={logout} color="red.500">
+                      Sign Out
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              ) : (
+                <>
+                  <Button
+                    bg="#4ade80"
+                    color="white"
+                    _hover={{ bg: "#22c55e" }}
+                    onClick={() => navigate('/user-signup')}
+                  >
+                    Register
+                  </Button>
+                  <Button
+                    variant="outline"
+                    color="white"
+                    borderColor="white"
+                    _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                    onClick={() => navigate('/user-login')}
+                  >
+                    Login
+                  </Button>
+                </>
+              )}
+            </HStack>
+          </Flex>
+        </MotionBox>
+
         {/* Header */}
         <MotionBox
           initial={{ opacity: 0, y: -50 }}

@@ -213,14 +213,25 @@ const LandingPage: React.FC = () => {
                   </MenuList>
                 </Menu>
               ) : (
-                <Button
-                  bg="#4ade80"
-                  color="white"
-                  _hover={{ bg: "#22c55e" }}
-                  onClick={handleUserSignup}
-                >
-                  Register
-                </Button>
+                <>
+                  <Button
+                    bg="#4ade80"
+                    color="white"
+                    _hover={{ bg: "#22c55e" }}
+                    onClick={handleUserSignup}
+                  >
+                    Register
+                  </Button>
+                  <Button
+                    variant="outline"
+                    color="white"
+                    borderColor="white"
+                    _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                    onClick={handleUserLogin}
+                  >
+                    Login
+                  </Button>
+                </>
               )}
             </HStack>
           </Flex>
