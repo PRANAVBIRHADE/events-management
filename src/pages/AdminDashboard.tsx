@@ -69,11 +69,20 @@ const AdminDashboard: React.FC = () => {
   
   // Event form state
   const [eventForm, setEventForm] = useState({
-    title: '',
+    name: '',
     description: '',
-    date: '',
-    venue: '',
-    price: 0
+    event_date: '',
+    location: '',
+    max_capacity: 100,
+    category: 'general',
+    event_type: 'free',
+    price: 0,
+    registration_deadline: '',
+    organizer: '',
+    contact_email: '',
+    contact_phone: '',
+    requirements: '',
+    tags: ''
   });
   
   const { isOpen: isQRScannerOpen, onOpen: onQRScannerOpen, onClose: onQRScannerClose } = useDisclosure();
@@ -263,11 +272,20 @@ const AdminDashboard: React.FC = () => {
   // Event management functions
   const resetEventForm = () => {
     setEventForm({
-      title: '',
+      name: '',
       description: '',
-      date: '',
-      venue: '',
-      price: 0
+      event_date: '',
+      location: '',
+      max_capacity: 100,
+      category: 'general',
+      event_type: 'free',
+      price: 0,
+      registration_deadline: '',
+      organizer: '',
+      contact_email: '',
+      contact_phone: '',
+      requirements: '',
+      tags: ''
     });
     setIsEditingEvent(false);
     setSelectedEvent(null);
@@ -280,11 +298,20 @@ const AdminDashboard: React.FC = () => {
 
   const handleEditEvent = (event: Event) => {
     setEventForm({
-      title: event.name,
+      name: event.name,
       description: event.description || '',
-      date: new Date(event.event_date).toISOString().slice(0, 16), // Format for datetime-local input
-      venue: event.location || '',
-      price: 99 // Fixed price for seniors
+      event_date: new Date(event.event_date).toISOString().slice(0, 16), // Format for datetime-local input
+      location: event.location || '',
+      max_capacity: event.max_capacity || 100,
+      category: event.category || 'general',
+      event_type: event.event_type || 'free',
+      price: event.price || 0,
+      registration_deadline: event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : '',
+      organizer: event.organizer || '',
+      contact_email: event.contact_email || '',
+      contact_phone: event.contact_phone || '',
+      requirements: event.requirements || '',
+      tags: event.tags ? event.tags.join(', ') : ''
     });
     setSelectedEvent(event);
     setIsEditingEvent(true);
@@ -292,23 +319,35 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSaveEvent = async () => {
-    if (!eventForm.title || !eventForm.date || !eventForm.venue) {
-      alert('Please fill in all required fields');
+    if (!eventForm.name || !eventForm.event_date || !eventForm.location) {
+      alert('Please fill in all required fields (Name, Date, Location)');
       return;
     }
 
     try {
+      const eventData = {
+        name: eventForm.name,
+        description: eventForm.description,
+        event_date: eventForm.event_date,
+        location: eventForm.location,
+        max_capacity: eventForm.max_capacity,
+        category: eventForm.category,
+        event_type: eventForm.event_type,
+        price: eventForm.price,
+        registration_deadline: eventForm.registration_deadline || null,
+        organizer: eventForm.organizer,
+        contact_email: eventForm.contact_email,
+        contact_phone: eventForm.contact_phone,
+        requirements: eventForm.requirements,
+        tags: eventForm.tags ? eventForm.tags.split(',').map(tag => tag.trim()) : [],
+        is_active: true
+      };
+
       if (isEditingEvent && selectedEvent) {
         // Update existing event
         const { error } = await supabase
           .from('events')
-          .update({
-            name: eventForm.title,
-            description: eventForm.description,
-            event_date: eventForm.date,
-            location: eventForm.venue,
-            max_capacity: 500 // Default capacity
-          })
+          .update(eventData)
           .eq('id', selectedEvent.id);
 
         if (error) throw error;
@@ -316,14 +355,7 @@ const AdminDashboard: React.FC = () => {
         // Create new event
         const { error } = await supabase
           .from('events')
-          .insert([{
-            name: eventForm.title,
-            description: eventForm.description,
-            event_date: eventForm.date,
-            location: eventForm.venue,
-            max_capacity: 500, // Default capacity
-            is_active: true
-          }]);
+          .insert([eventData]);
 
         if (error) throw error;
       }
@@ -573,6 +605,18 @@ const AdminDashboard: React.FC = () => {
                             <Box as="td" p={4}>
                               <VStack align="start" spacing={1}>
                                 <Text fontWeight="medium" fontSize="lg">{event.name}</Text>
+                                <HStack spacing={2}>
+                                  <Badge colorScheme="blue" variant="solid" fontSize="xs">
+                                    {event.category?.toUpperCase() || 'GENERAL'}
+                                  </Badge>
+                                  <Badge 
+                                    colorScheme={event.event_type === 'free' ? 'green' : event.event_type === 'paid' ? 'blue' : 'purple'} 
+                                    variant="outline" 
+                                    fontSize="xs"
+                                  >
+                                    {event.event_type?.toUpperCase() || 'FREE'}
+                                  </Badge>
+                                </HStack>
                                 {event.description && (
                                   <Text fontSize="sm" color="gray.600" noOfLines={2}>
                                     {event.description}
@@ -603,12 +647,17 @@ const AdminDashboard: React.FC = () => {
                               </HStack>
                             </Box>
                             <Box as="td" p={4}>
-                              <HStack>
-                                <Icon as={FaDollarSign} color="green.500" boxSize={3} />
-                                <Text fontSize="sm" fontWeight="medium">
-                                  Seniors: ₹99 | Freshers: Free
+                              <VStack align="start" spacing={1}>
+                                <HStack>
+                                  <Icon as={FaDollarSign} color="green.500" boxSize={3} />
+                                  <Text fontSize="sm" fontWeight="medium">
+                                    {event.event_type === 'free' ? 'Free' : `₹${event.price || 0}`}
+                                  </Text>
+                                </HStack>
+                                <Text fontSize="xs" color="gray.500">
+                                  Capacity: {event.current_registrations}/{event.max_capacity || '∞'}
                                 </Text>
-                              </HStack>
+                              </VStack>
                             </Box>
                             <Box as="td" p={4}>
                               <HStack gap={2}>
@@ -892,11 +941,11 @@ const AdminDashboard: React.FC = () => {
           <ModalBody pb={6}>
             <VStack spacing={4}>
               <Box w="full">
-                <Text mb={2} fontWeight="medium">Event Title *</Text>
+                <Text mb={2} fontWeight="medium">Event Name *</Text>
                 <Input
-                  placeholder="Enter event title"
-                  value={eventForm.title}
-                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                  placeholder="Enter event name"
+                  value={eventForm.name}
+                  onChange={(e) => setEventForm({ ...eventForm, name: e.target.value })}
                 />
               </Box>
               
@@ -911,13 +960,72 @@ const AdminDashboard: React.FC = () => {
               
               <HStack w="full" spacing={4}>
                 <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Category *</Text>
+                  <Select
+                    value={eventForm.category}
+                    onChange={(e) => setEventForm({ ...eventForm, category: e.target.value })}
+                  >
+                    <option value="sports">Sports</option>
+                    <option value="cultural">Cultural</option>
+                    <option value="technical">Technical</option>
+                    <option value="academic">Academic</option>
+                    <option value="social">Social</option>
+                    <option value="general">General</option>
+                  </Select>
+                </Box>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Event Type *</Text>
+                  <Select
+                    value={eventForm.event_type}
+                    onChange={(e) => setEventForm({ ...eventForm, event_type: e.target.value })}
+                  >
+                    <option value="free">Free</option>
+                    <option value="paid">Paid</option>
+                    <option value="invitation_only">Invitation Only</option>
+                  </Select>
+                </Box>
+              </HStack>
+              
+              <HStack w="full" spacing={4}>
+                <Box flex="1">
                   <Text mb={2} fontWeight="medium">Date & Time *</Text>
                   <Input
                     type="datetime-local"
-                    value={eventForm.date}
-                    onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                    value={eventForm.event_date}
+                    onChange={(e) => setEventForm({ ...eventForm, event_date: e.target.value })}
                   />
                 </Box>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Registration Deadline</Text>
+                  <Input
+                    type="datetime-local"
+                    value={eventForm.registration_deadline}
+                    onChange={(e) => setEventForm({ ...eventForm, registration_deadline: e.target.value })}
+                  />
+                </Box>
+              </HStack>
+              
+              <HStack w="full" spacing={4}>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Location *</Text>
+                  <Input
+                    placeholder="Enter venue name"
+                    value={eventForm.location}
+                    onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
+                  />
+                </Box>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Max Capacity</Text>
+                  <Input
+                    type="number"
+                    placeholder="100"
+                    value={eventForm.max_capacity}
+                    onChange={(e) => setEventForm({ ...eventForm, max_capacity: parseInt(e.target.value) || 100 })}
+                  />
+                </Box>
+              </HStack>
+              
+              <HStack w="full" spacing={4}>
                 <Box flex="1">
                   <Text mb={2} fontWeight="medium">Price (₹)</Text>
                   <Input
@@ -925,16 +1033,54 @@ const AdminDashboard: React.FC = () => {
                     placeholder="0"
                     value={eventForm.price}
                     onChange={(e) => setEventForm({ ...eventForm, price: parseFloat(e.target.value) || 0 })}
+                    disabled={eventForm.event_type === 'free'}
+                  />
+                </Box>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Organizer</Text>
+                  <Input
+                    placeholder="Event organizer"
+                    value={eventForm.organizer}
+                    onChange={(e) => setEventForm({ ...eventForm, organizer: e.target.value })}
+                  />
+                </Box>
+              </HStack>
+              
+              <HStack w="full" spacing={4}>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Contact Email</Text>
+                  <Input
+                    type="email"
+                    placeholder="contact@college.edu"
+                    value={eventForm.contact_email}
+                    onChange={(e) => setEventForm({ ...eventForm, contact_email: e.target.value })}
+                  />
+                </Box>
+                <Box flex="1">
+                  <Text mb={2} fontWeight="medium">Contact Phone</Text>
+                  <Input
+                    placeholder="+91 98765 43210"
+                    value={eventForm.contact_phone}
+                    onChange={(e) => setEventForm({ ...eventForm, contact_phone: e.target.value })}
                   />
                 </Box>
               </HStack>
               
               <Box w="full">
-                <Text mb={2} fontWeight="medium">Venue *</Text>
+                <Text mb={2} fontWeight="medium">Requirements</Text>
                 <Input
-                  placeholder="Enter venue name"
-                  value={eventForm.venue}
-                  onChange={(e) => setEventForm({ ...eventForm, venue: e.target.value })}
+                  placeholder="Special requirements or instructions"
+                  value={eventForm.requirements}
+                  onChange={(e) => setEventForm({ ...eventForm, requirements: e.target.value })}
+                />
+              </Box>
+              
+              <Box w="full">
+                <Text mb={2} fontWeight="medium">Tags</Text>
+                <Input
+                  placeholder="Enter tags separated by commas (e.g., workshop, beginner, coding)"
+                  value={eventForm.tags}
+                  onChange={(e) => setEventForm({ ...eventForm, tags: e.target.value })}
                 />
               </Box>
               
