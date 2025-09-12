@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const interval = setInterval(checkInactivity, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [user, lastActivity, INACTIVITY_TIMEOUT, logout]);
+  }, [user, lastActivity, INACTIVITY_TIMEOUT]);
 
   // Track user activity
   useEffect(() => {
