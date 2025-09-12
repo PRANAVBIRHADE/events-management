@@ -55,7 +55,7 @@ const ContactPage: React.FC = () => {
             <HStack spacing={3}>
               <Icon as={FaGraduationCap} color="#4ade80" boxSize={8} />
               <Text color="white" fontSize="xl" fontWeight="bold">
-                St. Xavier's College
+                College Event Portal
               </Text>
             </HStack>
             
@@ -110,7 +110,7 @@ const ContactPage: React.FC = () => {
                       <VStack align="start" spacing={0}>
                         <Text color="white" fontWeight="bold">Email</Text>
                         <Text color="rgba(255,255,255,0.7)" fontSize="sm">
-                          events@stxaviers.edu
+                          events@yourcollege.edu
                         </Text>
                       </VStack>
                     </HStack>
@@ -130,9 +130,9 @@ const ContactPage: React.FC = () => {
                       <VStack align="start" spacing={0}>
                         <Text color="white" fontWeight="bold">Address</Text>
                         <Text color="rgba(255,255,255,0.7)" fontSize="sm">
-                          St. Xavier's College<br />
+                          Your College Name<br />
                           College Road, City Center<br />
-                          Mumbai, Maharashtra 400001
+                          Your City, State 123456
                         </Text>
                       </VStack>
                     </HStack>
