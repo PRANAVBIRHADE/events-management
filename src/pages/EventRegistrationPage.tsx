@@ -43,11 +43,12 @@ const MotionCard = motion(Card);
 const EventRegistrationPage: React.FC = () => {
   const navigate = useNavigate();
   const { eventId } = useParams<{ eventId: string }>();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
   const isMobile = useBreakpointValue({ base: true, md: false });
   
   const [event, setEvent] = useState<Event | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,13 +62,47 @@ const EventRegistrationPage: React.FC = () => {
     
     if (eventId) {
       fetchEvent();
+      fetchUserProfile();
       checkRegistrationStatus();
     }
   }, [eventId, user, navigate]);
 
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        // If profile doesn't exist, create a basic one from user metadata
+        setProfile({
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          mobile_number: user.user_metadata?.mobile_number || '',
+          studying_year: user.user_metadata?.studying_year || 1,
+        });
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      // Fallback to user metadata
+      setProfile({
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        mobile_number: user.user_metadata?.mobile_number || '',
+        studying_year: user.user_metadata?.studying_year || 1,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchEvent = async () => {
     try {
-      setIsLoading(true);
       setError(null);
 
       const { data, error } = await supabase
@@ -89,8 +124,6 @@ const EventRegistrationPage: React.FC = () => {
     } catch (error: any) {
       console.error('Error fetching event:', error);
       setError(error.message || 'Failed to load event');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -263,7 +296,7 @@ const EventRegistrationPage: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !event || !profile) {
     return (
       <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" display="flex" alignItems="center" justifyContent="center">
         <VStack spacing={4}>
