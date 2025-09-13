@@ -31,21 +31,29 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalFooter,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Avatar,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaUser, 
-  FaEnvelope, 
-  FaPhone, 
-  FaGraduationCap, 
+import {
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaGraduationCap,
   FaCalendar,
-  FaArrowLeft,
   FaEdit,
   FaSave,
   FaTimes,
   FaSignOutAlt,
-  FaTicketAlt
+  FaTicketAlt,
+  FaChevronDown,
+  FaHome,
+  FaCalendarAlt,
+  FaArrowLeft,
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -69,7 +77,7 @@ const UserProfilePage: React.FC = () => {
   const toast = useToast();
   const { user, logout } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -90,17 +98,14 @@ const UserProfilePage: React.FC = () => {
 
   const fetchProfile = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
-
       if (error) {
         if (error.code === 'PGRST116') {
-          // Profile doesn't exist, create it
           await createProfile();
         } else {
           throw error;
@@ -129,7 +134,6 @@ const UserProfilePage: React.FC = () => {
 
   const createProfile = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -143,7 +147,6 @@ const UserProfilePage: React.FC = () => {
         ])
         .select()
         .single();
-
       if (error) throw error;
       setProfile(data);
       setEditData({
@@ -156,10 +159,7 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
+  const handleEdit = () => setIsEditing(true);
   const handleCancel = () => {
     setIsEditing(false);
     setEditData({
@@ -171,9 +171,7 @@ const UserProfilePage: React.FC = () => {
 
   const handleSave = async () => {
     if (!user || !profile) return;
-
     setIsSaving(true);
-    
     try {
       const { error } = await supabase
         .from('user_profiles')
@@ -183,19 +181,14 @@ const UserProfilePage: React.FC = () => {
           studying_year: editData.studying_year,
         })
         .eq('user_id', user.id);
-
       if (error) throw error;
-
-      // Update local state
       setProfile({
         ...profile,
         full_name: editData.full_name,
         mobile_number: editData.mobile_number,
         studying_year: editData.studying_year,
       });
-
       setIsEditing(false);
-      
       toast({
         title: 'Profile updated successfully!',
         description: 'Your profile information has been saved.',
@@ -217,10 +210,7 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  const handleLogout = async () => {
-    onOpen();
-  };
-
+  const handleLogout = async () => onOpen();
   const confirmLogout = async () => {
     await logout();
     navigate('/');
@@ -237,7 +227,6 @@ const UserProfilePage: React.FC = () => {
       </Center>
     );
   }
-
   if (!profile) {
     return (
       <Center minH="100vh">
@@ -249,10 +238,27 @@ const UserProfilePage: React.FC = () => {
     );
   }
 
+  // Navbar user menu
+  const UserMenu = () => (
+    <Menu>
+      <MenuButton as={Button} variant="outline" color="white" borderColor="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }} rightIcon={<Icon as={FaChevronDown} />}>
+        <HStack spacing={2}>
+          <Avatar size="sm" name={profile.full_name} />
+          <Text>{profile.full_name}</Text>
+        </HStack>
+      </MenuButton>
+      <MenuList>
+        <MenuItem icon={<Icon as={FaUser} />} onClick={() => navigate('/user-profile')}>My Profile</MenuItem>
+        <MenuItem icon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/user-dashboard')}>My Tickets</MenuItem>
+        <MenuItem icon={<Icon as={FaSignOutAlt} />} onClick={handleLogout} color="red.500">Sign Out</MenuItem>
+      </MenuList>
+    </Menu>
+  );
+
   return (
     <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" position="relative" overflow="hidden">
       {/* Animated Background Elements */}
-      {[...Array(8)].map((_, i) => (
+      {[...Array(10)].map((_, i) => (
         <MotionBox
           key={i}
           position="absolute"
@@ -268,7 +274,7 @@ const UserProfilePage: React.FC = () => {
           transition={{
             duration: Math.random() * 10 + 10,
             repeat: Infinity,
-            ease: "linear"
+            ease: 'linear',
           }}
           style={{
             left: `${Math.random() * 100}%`,
@@ -279,53 +285,36 @@ const UserProfilePage: React.FC = () => {
           }}
         />
       ))}
-      {/* Header */}
+      {/* Header Navigation */}
       <Box bg="rgba(255,255,255,0.05)" backdropFilter="blur(10px)" borderBottom="1px solid rgba(255,255,255,0.2)" zIndex={2}>
-        <Container maxW="4xl" py={4}>
+        <Container maxW="6xl" py={4}>
           <Flex justify="space-between" align="center">
-            <HStack>
-              <Button
-                variant="ghost"
-                color="white"
-                leftIcon={<Icon as={FaArrowLeft} />}
-                onClick={() => navigate('/user-dashboard')}
-                _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-              >
-                Back to Dashboard
-              </Button>
+            {/* Logo */}
+            <HStack spacing={3}>
+              <Icon as={FaGraduationCap} color="#4ade80" boxSize={8} />
+              <Text color="white" fontSize="xl" fontWeight="bold">MPGI SOE</Text>
             </HStack>
+            {/* Navigation Menu */}
+            <HStack spacing={8} display={{ base: 'none', md: 'flex' }}>
+              <Button variant="ghost" color="white" _hover={{ bg: '#4ade80', color: 'white' }} onClick={() => navigate('/')}>Home</Button>
+              <Button variant="ghost" color="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }} onClick={() => navigate('/events')}>Events</Button>
+              <Button variant="ghost" color="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }} onClick={() => navigate('/contact')}>Contact</Button>
+            </HStack>
+            {/* User Menu */}
             <HStack spacing={4}>
-              <Button
-                size="sm"
-                variant="outline"
-                leftIcon={<Icon as={FaSignOutAlt} />}
-                onClick={handleLogout}
-                colorScheme="red"
-                borderColor="white"
-                color="white"
-                _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-              >
-                Logout
-              </Button>
+              <UserMenu />
             </HStack>
           </Flex>
         </Container>
       </Box>
+      {/* Profile Content */}
       <Container maxW="4xl" py={12} position="relative" zIndex={2}>
         <VStack spacing={10} align="stretch">
           {/* Profile Header */}
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <MotionBox initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <VStack spacing={4} textAlign="center">
-              <Heading size="xl" color="white" textShadow="0 2px 8px rgba(0,0,0,0.15)">
-                My Profile
-              </Heading>
-              <Text fontSize="lg" color="rgba(255,255,255,0.85)">
-                Manage your account information and preferences
-              </Text>
+              <Heading size="xl" color="white" textShadow="0 2px 8px rgba(0,0,0,0.15)">My Profile</Heading>
+              <Text fontSize="lg" color="rgba(255,255,255,0.85)">Manage your account information and preferences</Text>
             </VStack>
           </MotionBox>
           {/* Profile Information */}
@@ -342,22 +331,9 @@ const UserProfilePage: React.FC = () => {
           >
             <CardHeader>
               <Flex justify="space-between" align="center">
-                <Heading size="md" color="white">
-                  Account Information
-                </Heading>
+                <Heading size="md" color="white">Account Information</Heading>
                 {!isEditing && (
-                  <Button
-                    size="sm"
-                    leftIcon={<Icon as={FaEdit} />}
-                    onClick={handleEdit}
-                    colorScheme="blue"
-                    variant="outline"
-                    borderColor="white"
-                    color="white"
-                    _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-                  >
-                    Edit Profile
-                  </Button>
+                  <Button size="sm" leftIcon={<Icon as={FaEdit} />} onClick={handleEdit} colorScheme="blue" variant="outline" borderColor="white" color="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }}>Edit Profile</Button>
                 )}
               </Flex>
             </CardHeader>
@@ -365,78 +341,33 @@ const UserProfilePage: React.FC = () => {
               <VStack spacing={6} align="stretch">
                 {/* Email (Read-only) */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
-                    <Icon as={FaEnvelope} mr={2} />
-                    Email Address
-                  </FormLabel>
-                  <Input
-                    value={user?.email || ''}
-                    isReadOnly
-                    bg="rgba(255,255,255,0.08)"
-                    borderColor="rgba(255,255,255,0.2)"
-                    color="white"
-                  />
-                  <Text fontSize="xs" color="rgba(255,255,255,0.7)" mt={1}>
-                    Email cannot be changed
-                  </Text>
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white"><Icon as={FaEnvelope} mr={2} />Email Address</FormLabel>
+                  <Input value={user?.email || ''} isReadOnly bg="rgba(255,255,255,0.08)" borderColor="rgba(255,255,255,0.2)" color="white" />
+                  <Text fontSize="xs" color="rgba(255,255,255,0.7)" mt={1}>Email cannot be changed</Text>
                 </FormControl>
                 {/* Full Name */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
-                    <Icon as={FaUser} mr={2} />
-                    Full Name
-                  </FormLabel>
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white"><Icon as={FaUser} mr={2} />Full Name</FormLabel>
                   {isEditing ? (
-                    <Input
-                      value={editData.full_name}
-                      onChange={(e) => setEditData(prev => ({ ...prev, full_name: e.target.value }))}
-                      placeholder="Enter your full name"
-                      bg="rgba(255,255,255,0.08)"
-                      borderColor="rgba(255,255,255,0.2)"
-                      color="white"
-                    />
+                    <Input value={editData.full_name} onChange={(e) => setEditData(prev => ({ ...prev, full_name: e.target.value }))} placeholder="Enter your full name" bg="rgba(255,255,255,0.08)" borderColor="rgba(255,255,255,0.2)" color="white" />
                   ) : (
-                    <Text fontSize="md" color="white" py={2}>
-                      {profile.full_name}
-                    </Text>
+                    <Text fontSize="md" color="white" py={2}>{profile.full_name}</Text>
                   )}
                 </FormControl>
                 {/* Mobile Number */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
-                    <Icon as={FaPhone} mr={2} />
-                    Mobile Number
-                  </FormLabel>
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white"><Icon as={FaPhone} mr={2} />Mobile Number</FormLabel>
                   {isEditing ? (
-                    <Input
-                      value={editData.mobile_number}
-                      onChange={(e) => setEditData(prev => ({ ...prev, mobile_number: e.target.value }))}
-                      placeholder="Enter your mobile number"
-                      bg="rgba(255,255,255,0.08)"
-                      borderColor="rgba(255,255,255,0.2)"
-                      color="white"
-                    />
+                    <Input value={editData.mobile_number} onChange={(e) => setEditData(prev => ({ ...prev, mobile_number: e.target.value }))} placeholder="Enter your mobile number" bg="rgba(255,255,255,0.08)" borderColor="rgba(255,255,255,0.2)" color="white" />
                   ) : (
-                    <Text fontSize="md" color="white" py={2}>
-                      {profile.mobile_number}
-                    </Text>
+                    <Text fontSize="md" color="white" py={2}>{profile.mobile_number}</Text>
                   )}
                 </FormControl>
                 {/* Studying Year */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
-                    <Icon as={FaGraduationCap} mr={2} />
-                    Studying Year
-                  </FormLabel>
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white"><Icon as={FaGraduationCap} mr={2} />Studying Year</FormLabel>
                   {isEditing ? (
-                    <Input
-                      as="select"
-                      value={editData.studying_year}
-                      onChange={(e) => setEditData(prev => ({ ...prev, studying_year: parseInt(e.target.value) }))}
-                      bg="rgba(255,255,255,0.08)"
-                      borderColor="rgba(255,255,255,0.2)"
-                      color="white"
-                    >
+                    <Input as="select" value={editData.studying_year} onChange={(e) => setEditData(prev => ({ ...prev, studying_year: parseInt(e.target.value) }))} bg="rgba(255,255,255,0.08)" borderColor="rgba(255,255,255,0.2)" color="white">
                       <option value={1}>1st Year (Fresher)</option>
                       <option value={2}>2nd Year (Senior)</option>
                       <option value={3}>3rd Year (Senior)</option>
@@ -444,56 +375,21 @@ const UserProfilePage: React.FC = () => {
                     </Input>
                   ) : (
                     <HStack>
-                      <Text fontSize="md" color="white" py={2}>
-                        Year {profile.studying_year}
-                      </Text>
-                      <Badge 
-                        colorScheme={profile.studying_year === 1 ? 'green' : 'blue'}
-                        fontSize="sm"
-                      >
-                        {profile.studying_year === 1 ? 'Fresher' : 'Senior'}
-                      </Badge>
+                      <Text fontSize="md" color="white" py={2}>Year {profile.studying_year}</Text>
+                      <Badge colorScheme={profile.studying_year === 1 ? 'green' : 'blue'} fontSize="sm">{profile.studying_year === 1 ? 'Fresher' : 'Senior'}</Badge>
                     </HStack>
                   )}
                 </FormControl>
                 {/* Account Created */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
-                    <Icon as={FaCalendar} mr={2} />
-                    Account Created
-                  </FormLabel>
-                  <Text fontSize="md" color="white" py={2}>
-                    {new Date(profile.created_at).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </Text>
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white"><Icon as={FaCalendar} mr={2} />Account Created</FormLabel>
+                  <Text fontSize="md" color="white" py={2}>{new Date(profile.created_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Text>
                 </FormControl>
                 {/* Edit Actions */}
                 {isEditing && (
                   <HStack spacing={4} pt={4}>
-                    <Button
-                      colorScheme="green"
-                      leftIcon={<Icon as={FaSave} />}
-                      onClick={handleSave}
-                      isLoading={isSaving}
-                      loadingText="Saving..."
-                    >
-                      Save Changes
-                    </Button>
-                    <Button
-                      variant="outline"
-                      leftIcon={<Icon as={FaTimes} />}
-                      onClick={handleCancel}
-                      isDisabled={isSaving}
-                      color="white"
-                      borderColor="white"
-                      _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-                    >
-                      Cancel
-                    </Button>
+                    <Button colorScheme="green" leftIcon={<Icon as={FaSave} />} onClick={handleSave} isLoading={isSaving} loadingText="Saving...">Save Changes</Button>
+                    <Button variant="outline" leftIcon={<Icon as={FaTimes} />} onClick={handleCancel} isDisabled={isSaving} color="white" borderColor="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }}>Cancel</Button>
                   </HStack>
                 )}
               </VStack>
@@ -512,34 +408,12 @@ const UserProfilePage: React.FC = () => {
             variant="outline"
           >
             <CardHeader>
-              <Heading size="md" color="white">
-                Quick Actions
-              </Heading>
+              <Heading size="md" color="white">Quick Actions</Heading>
             </CardHeader>
             <CardBody>
               <VStack spacing={4} align="stretch">
-                <Button
-                  leftIcon={<Icon as={FaTicketAlt} />}
-                  onClick={() => navigate('/user-dashboard')}
-                  colorScheme="blue"
-                  variant="solid"
-                  bg="#4ade80"
-                  color="white"
-                  _hover={{ bg: '#22c55e' }}
-                >
-                  View My Tickets
-                </Button>
-                <Button
-                  leftIcon={<Icon as={FaSignOutAlt} />}
-                  onClick={handleLogout}
-                  colorScheme="red"
-                  variant="outline"
-                  color="white"
-                  borderColor="white"
-                  _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-                >
-                  Sign Out
-                </Button>
+                <Button leftIcon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/user-dashboard')} colorScheme="blue" variant="solid" bg="#4ade80" color="white" _hover={{ bg: '#22c55e' }}>View My Tickets</Button>
+                <Button leftIcon={<Icon as={FaSignOutAlt} />} onClick={handleLogout} colorScheme="red" variant="outline" color="white" borderColor="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }}>Sign Out</Button>
               </VStack>
             </CardBody>
           </MotionCard>
@@ -555,12 +429,8 @@ const UserProfilePage: React.FC = () => {
             <Text>Are you sure you want to sign out? You'll need to log in again to access your account.</Text>
           </ModalBody>
           <ModalFooter>
-            <Button variant="outline" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="red" onClick={confirmLogout}>
-              Sign Out
-            </Button>
+            <Button variant="outline" mr={3} onClick={onClose}>Cancel</Button>
+            <Button colorScheme="red" onClick={confirmLogout}>Sign Out</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

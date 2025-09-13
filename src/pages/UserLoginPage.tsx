@@ -6,7 +6,7 @@ const UserLoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLoginSuccess = () => {
-    navigate('/user-dashboard');
+    navigate('/user-profile'); // Redirect to profile after login
   };
 
   return <UserLogin onLoginSuccess={handleLoginSuccess} />;
