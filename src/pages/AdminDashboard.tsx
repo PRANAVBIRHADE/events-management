@@ -54,7 +54,7 @@ import AdminLogin from '../components/AdminLogin';
 
 const MotionBox = motion(Box);
 
-  // Update EventFormData interface - Year-wise pricing
+  // Update EventFormData interface - Year-wise pricing (v2)
 interface EventFormData {
   name: string;
   description: string;
