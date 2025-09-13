@@ -106,7 +106,7 @@ const PaymentPage: React.FC = () => {
 
           // Redirect to ticket page after a short delay
           setTimeout(() => {
-            navigate('/ticket');
+            navigate('/my-tickets');
           }, 2000);
 
         } catch (error: any) {

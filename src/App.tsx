@@ -11,13 +11,13 @@ import PaymentPage from './pages/PaymentPage';
 import TicketPage from './pages/TicketPage';
 import FresherHypePage from './pages/FresherHypePage';
 import AdminDashboard from './pages/AdminDashboard';
-import UserDashboard from './pages/UserDashboardNew';
 import UserLoginPage from './pages/UserLoginPage';
 import UserSignupPage from './pages/UserSignupPage';
 import UserProfilePage from './pages/UserProfilePage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
 import EventRegistrationPage from './pages/EventRegistrationPage';
 import DebugPage from './pages/DebugPage';
+import MyTicketsPage from './pages/MyTicketsPage';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Custom theme with party vibes
@@ -111,10 +111,10 @@ function App() {
               <Route path="/user-login" element={<UserLoginPage />} />
               <Route path="/user-signup" element={<UserSignupPage />} />
               <Route path="/verify-email" element={<EmailVerificationPage />} />
-              <Route path="/user-dashboard" element={<UserDashboard />} />
               <Route path="/user-profile" element={<UserProfilePage />} />
               <Route path="/register/:eventId" element={<EventRegistrationPage />} />
               <Route path="/debug" element={<DebugPage />} />
+              <Route path="/my-tickets" element={<MyTicketsPage />} />
             </Routes>
           </MotionDiv>
         </Router>

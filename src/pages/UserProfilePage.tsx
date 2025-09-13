@@ -283,7 +283,7 @@ const UserProfilePage: React.FC = () => {
       </MenuButton>
       <MenuList>
         <MenuItem icon={<Icon as={FaUser} />} onClick={() => navigate('/user-profile')}>My Profile</MenuItem>
-        <MenuItem icon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/user-dashboard')}>My Tickets</MenuItem>
+        <MenuItem icon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/my-tickets')}>My Tickets</MenuItem>
         <MenuItem icon={<Icon as={FaSignOutAlt} />} onClick={handleLogout} color="red.500">Sign Out</MenuItem>
       </MenuList>
     </Menu>
@@ -446,7 +446,7 @@ const UserProfilePage: React.FC = () => {
             </CardHeader>
             <CardBody>
               <VStack spacing={4} align="stretch">
-                <Button leftIcon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/user-dashboard')} colorScheme="blue" variant="solid" bg="#4ade80" color="white" _hover={{ bg: '#22c55e' }}>View My Tickets</Button>
+                <Button leftIcon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/my-tickets')} colorScheme="blue" variant="solid" bg="#4ade80" color="white" _hover={{ bg: '#22c55e' }}>View My Tickets</Button>
                 <Button leftIcon={<Icon as={FaSignOutAlt} />} onClick={handleLogout} colorScheme="red" variant="outline" color="white" borderColor="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }}>Sign Out</Button>
               </VStack>
             </CardBody>

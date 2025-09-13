@@ -663,7 +663,7 @@ const EventRegistrationPage: React.FC = () => {
                 color="white"
                 borderColor="white"
                 _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-                onClick={() => navigate('/user-dashboard')}
+                onClick={() => navigate('/my-tickets')}
                 leftIcon={<Icon as={FaArrowLeft} />}
               >
                 Back to Dashboard

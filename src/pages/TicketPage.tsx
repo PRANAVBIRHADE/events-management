@@ -68,7 +68,7 @@ const TicketPage: React.FC = () => {
       }
       setIsLoading(false);
     } else {
-      navigate('/user-dashboard');
+      navigate('/my-tickets');
     }
   }, [navigate, location.state]);
 
@@ -191,7 +191,7 @@ const TicketPage: React.FC = () => {
       <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" display="flex" alignItems="center" justifyContent="center">
         <VStack spacing={4}>
           <Text color="white" fontSize="lg">No ticket data found</Text>
-          <Button onClick={() => navigate('/user-dashboard')}>Back to Dashboard</Button>
+          <Button onClick={() => navigate('/my-tickets')}>Back to Dashboard</Button>
         </VStack>
       </Box>
     );
@@ -249,7 +249,7 @@ const TicketPage: React.FC = () => {
               color="white"
               borderColor="white"
               _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-              onClick={() => navigate('/user-dashboard')}
+              onClick={() => navigate('/my-tickets')}
               leftIcon={<Icon as={FaArrowLeft} />}
             >
               Back to Dashboard
@@ -511,7 +511,7 @@ const TicketPage: React.FC = () => {
               color="white"
               borderColor="white"
               _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-              onClick={() => navigate('/user-dashboard')}
+              onClick={() => navigate('/my-tickets')}
               leftIcon={<Icon as={FaHome} />}
               maxW="300px"
               mx="auto"
