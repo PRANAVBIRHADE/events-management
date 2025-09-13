@@ -57,6 +57,7 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import MyTickets from '../components/MyTickets';
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -87,6 +88,7 @@ const UserProfilePage: React.FC = () => {
     mobile_number: '',
     studying_year: 1,
   });
+  const [registrations, setRegistrations] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -94,6 +96,7 @@ const UserProfilePage: React.FC = () => {
       return;
     }
     fetchProfile();
+    fetchRegistrations();
   }, [user, navigate]);
 
   const fetchProfile = async () => {
@@ -215,6 +218,37 @@ const UserProfilePage: React.FC = () => {
     await logout();
     navigate('/');
     onClose();
+  };
+
+  // Fetch user registrations (tickets)
+  const fetchRegistrations = async () => {
+    if (!user) return;
+    try {
+      // Fetch fresher registrations
+      const { data: fresherData, error: fresherError } = await supabase
+        .from('freshers_registrations')
+        .select(`*, event:events(*)`)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (fresherError) throw fresherError;
+      // Fetch senior registrations
+      const { data: seniorData, error: seniorError } = await supabase
+        .from('senior_ticket_registrations')
+        .select(`*, event:events(*)`)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (seniorError) throw seniorError;
+      // Combine both types
+      setRegistrations([...(fresherData || []), ...(seniorData || [])]);
+    } catch (error) {
+      console.error('Error fetching registrations:', error);
+    }
+  };
+
+  // Download ticket handler (placeholder)
+  const downloadTicket = (registration: any) => {
+    // Implement ticket download logic here
+    console.log('Download ticket for:', registration.id);
   };
 
   if (isLoading) {
@@ -417,6 +451,14 @@ const UserProfilePage: React.FC = () => {
               </VStack>
             </CardBody>
           </MotionCard>
+          {/* My Tickets Section */}
+          <MotionBox initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.6 }}>
+            <MyTickets
+              registrations={registrations}
+              downloadTicket={downloadTicket}
+              navigate={navigate}
+            />
+          </MotionBox>
         </VStack>
       </Container>
       {/* Logout Confirmation Modal */}
