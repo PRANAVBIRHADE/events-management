@@ -54,6 +54,29 @@ import AdminLogin from '../components/AdminLogin';
 
 const MotionBox = motion(Box);
 
+// Event form interface
+interface EventFormData {
+  name: string;
+  description: string;
+  event_date: string;
+  location: string;
+  max_capacity: number;
+  category: string;
+  event_type: string;
+  price: number;
+  pricing_type: string;
+  free_for_years: number[];
+  paid_for_years: number[];
+  base_price: number;
+  year_specific_pricing: { [key: number]: number };
+  registration_deadline: string;
+  organizer: string;
+  contact_email: string;
+  contact_phone: string;
+  requirements: string;
+  tags: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -69,7 +92,7 @@ const AdminDashboard: React.FC = () => {
   const [isEditingEvent, setIsEditingEvent] = useState(false);
   
   // Event form state
-  const [eventForm, setEventForm] = useState({
+  const [eventForm, setEventForm] = useState<EventFormData>({
     name: '',
     description: '',
     event_date: '',
