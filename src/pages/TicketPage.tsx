@@ -5,45 +5,72 @@ import {
   Heading,
   Text,
   HStack,
+  VStack,
   Button,
   Flex,
   Icon,
   Badge,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+  useToast,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { FaDownload, FaCalendarAlt, FaMapMarkerAlt, FaMusic, FaHome } from 'react-icons/fa';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  FaDownload, 
+  FaCalendarAlt, 
+  FaMapMarkerAlt, 
+  FaClock, 
+  FaHome,
+  FaGraduationCap,
+  FaTicketAlt,
+  FaUsers,
+  FaDollarSign,
+  FaArrowLeft,
+} from 'react-icons/fa';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Registration } from '../lib/supabase';
+import { Registration, Event } from '../lib/supabase';
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
 
 const TicketPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const ticketRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
   
   const [registrationData, setRegistrationData] = useState<Registration | null>(null);
+  const [eventData, setEventData] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
-    // Get registration data from localStorage
-    const storedData = localStorage.getItem('registrationData');
-    if (storedData) {
-      const data = JSON.parse(storedData);
-      setRegistrationData(data);
+    // Get registration and event data from localStorage or location state
+    const storedRegistration = localStorage.getItem('registrationData');
+    const storedEvent = localStorage.getItem('eventData');
+    
+    // Check if data is passed via location state (from EventRegistrationPage)
+    if (location.state) {
+      const { registration, event, isFresher } = location.state;
+      setRegistrationData(registration);
+      setEventData(event);
+      setIsLoading(false);
+    } else if (storedRegistration) {
+      // Fallback to localStorage data
+      setRegistrationData(JSON.parse(storedRegistration));
+      if (storedEvent) {
+        setEventData(JSON.parse(storedEvent));
+      }
       setIsLoading(false);
     } else {
-      navigate('/');
+      navigate('/user-dashboard');
     }
-  }, [navigate]);
-
-  const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-  };
+  }, [navigate, location.state]);
 
   const downloadAsPNG = async () => {
     if (!ticketRef.current) return;
@@ -60,10 +87,22 @@ const TicketPage: React.FC = () => {
       link.href = canvas.toDataURL();
       link.click();
       
-      showMessage('success', 'Your ticket has been downloaded as PNG');
+      toast({
+        title: 'Download Successful!',
+        description: 'Your ticket has been downloaded as PNG',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error('Error downloading PNG:', error);
-      showMessage('error', 'Failed to download ticket. Please try again.');
+      toast({
+        title: 'Download Failed',
+        description: 'Failed to download ticket. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -99,314 +138,387 @@ const TicketPage: React.FC = () => {
       
       pdf.save(`freshers-party-ticket-${registrationData?.id}.pdf`);
       
-      showMessage('success', 'Your ticket has been downloaded as PDF');
+      toast({
+        title: 'Download Successful!',
+        description: 'Your ticket has been downloaded as PDF',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      showMessage('error', 'Failed to download ticket. Please try again.');
+      toast({
+        title: 'Download Failed',
+        description: 'Failed to download ticket. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
-  const handleGoHome = () => {
-    navigate('/');
+  const formatEventDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatEventTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   if (isLoading) {
     return (
-      <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" display="flex" alignItems="center" justifyContent="center">
-        <Flex direction="column" align="center" gap={4}>
+      <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" display="flex" alignItems="center" justifyContent="center">
+        <VStack spacing={4}>
           <Text color="white" fontSize="lg">Loading your ticket...</Text>
-        </Flex>
+        </VStack>
       </Box>
     );
   }
 
   if (!registrationData) {
     return (
-      <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" display="flex" alignItems="center" justifyContent="center">
-        <Flex direction="column" align="center" gap={4}>
+      <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" display="flex" alignItems="center" justifyContent="center">
+        <VStack spacing={4}>
           <Text color="white" fontSize="lg">No ticket data found</Text>
-          <Button onClick={handleGoHome}>Go Home</Button>
-        </Flex>
+          <Button onClick={() => navigate('/user-dashboard')}>Back to Dashboard</Button>
+        </VStack>
       </Box>
     );
   }
 
   return (
-    <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" py={8}>
-      <Container maxW="container.lg">
+    <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" position="relative" overflow="hidden">
+      {/* Animated Background Elements */}
+      {[...Array(6)].map((_, i) => (
         <MotionBox
-          initial={{ opacity: 0, y: 20 }}
+          key={i}
+          position="absolute"
+          borderRadius="full"
+          bg={`hsl(${Math.random() * 360}, 70%, 60%)`}
+          opacity={0.08}
+          animate={{
+            x: [0, Math.random() * 100 - 50],
+            y: [0, Math.random() * 100 - 50],
+            scale: [1, 1.2, 1],
+            rotate: [0, 360],
+          }}
+          transition={{
+            duration: Math.random() * 10 + 10,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 80 + 40}px`,
+            height: `${Math.random() * 80 + 40}px`,
+            zIndex: 0,
+          }}
+        />
+      ))}
+
+      <Container maxW="4xl" py={12} position="relative" zIndex={2}>
+        {/* Header */}
+        <MotionBox
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          mb={8}
         >
-          {/* Message Display */}
-          {message.text && (
-            <Box
-              p={4}
-              mb={4}
-              bg={message.type === 'success' ? 'green.50' : 'red.50'}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor={message.type === 'success' ? 'green.200' : 'red.200'}
-            >
-              <Text color={message.type === 'success' ? 'green.600' : 'red.600'} fontSize="sm">
-                {message.text}
+          <Flex justify="space-between" align="center" mb={6}>
+            <HStack spacing={3}>
+              <Icon as={FaGraduationCap} color="#4ade80" boxSize={8} />
+              <Text color="white" fontSize="xl" fontWeight="bold">
+                MPGI SOE
               </Text>
-            </Box>
-          )}
+            </HStack>
+            
+            <Button
+              variant="outline"
+              color="white"
+              borderColor="white"
+              _hover={{ bg: 'rgba(255,255,255,0.1)' }}
+              onClick={() => navigate('/user-dashboard')}
+              leftIcon={<Icon as={FaArrowLeft} />}
+            >
+              Back to Dashboard
+            </Button>
+          </Flex>
 
-          {/* Header */}
-          <Flex direction="column" align="center" gap={6} mb={8}>
+          <VStack spacing={4} align="center" textAlign="center">
             <Heading
               as="h1"
               size="2xl"
               color="white"
-              textAlign="center"
-              textShadow="0 2px 4px rgba(0,0,0,0.3)"
+              fontWeight="900"
             >
-              Your Party Ticket
+              Your Event Ticket
             </Heading>
-            
             <Text
-              color="white"
               fontSize="lg"
-              textAlign="center"
-              textShadow="0 1px 2px rgba(0,0,0,0.3)"
+              color="rgba(255,255,255,0.8)"
+              maxW="600px"
             >
-              Show this ticket at the entrance to enter the party! 🎉
+              Show this ticket at the entrance to enter the event! 🎉
             </Text>
-          </Flex>
+          </VStack>
+        </MotionBox>
 
-          {/* Ticket Card */}
-          <MotionBox
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            ref={ticketRef}
-            bg="white"
-            borderRadius="xl"
-            boxShadow="0 20px 40px rgba(0,0,0,0.1)"
-            overflow="hidden"
-            mb={6}
+        {/* Ticket Card */}
+        <MotionBox
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          ref={ticketRef}
+          bg="white"
+          borderRadius="2xl"
+          boxShadow="0 20px 40px rgba(0,0,0,0.1)"
+          overflow="hidden"
+          mb={6}
+        >
+          {/* Ticket Header */}
+          <Box
+            bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)"
+            p={6}
+            textAlign="center"
           >
-            {/* Ticket Header */}
-            <Box
-              bg="linear-gradient(135deg, #ff0080, #00ffff, #00ff00)"
-              p={6}
-              textAlign="center"
-            >
-              <Heading size="xl" color="white" mb={2}>
-                Fresher's Party 2K25
-              </Heading>
-              <Text color="white" fontSize="lg" opacity={0.9}>
-                Welcome to the Ultimate Welcome Party!
-              </Text>
-            </Box>
+            <Heading size="xl" color="white" mb={2}>
+              {eventData?.name || 'College Event'}
+            </Heading>
+            <Text color="white" fontSize="lg" opacity={0.9}>
+              {eventData?.description || 'Welcome to our exciting event!'}
+            </Text>
+          </Box>
 
-            {/* Ticket Content */}
-            <Box p={8}>
-              <Flex direction="column" gap={6}>
-                {/* Event Details */}
-                <Flex direction="column" gap={4} w="full">
+          {/* Ticket Content */}
+          <Box p={8}>
+            <VStack spacing={6} align="stretch">
+              {/* Event Details */}
+              {eventData && (
+                <VStack spacing={4} align="stretch">
                   <HStack align="center" w="full" justify="space-between" gap={4}>
                     <Icon as={FaCalendarAlt} color="pink.400" boxSize={5} />
                     <Text fontSize="lg" fontWeight="bold" color="gray.700">
-                      Saturday, 15th March 2025
+                      {formatEventDate(eventData.event_date)}
                     </Text>
                   </HStack>
                   
                   <HStack align="center" w="full" justify="space-between" gap={4}>
-                    <Icon as={FaMapMarkerAlt} color="blue.400" boxSize={5} />
+                    <Icon as={FaClock} color="blue.400" boxSize={5} />
                     <Text fontSize="lg" fontWeight="bold" color="gray.700">
-                      University Auditorium
+                      {formatEventTime(eventData.event_date)}
                     </Text>
                   </HStack>
                   
+                  {eventData.location && (
+                    <HStack align="center" w="full" justify="space-between" gap={4}>
+                      <Icon as={FaMapMarkerAlt} color="green.400" boxSize={5} />
+                      <Text fontSize="lg" fontWeight="bold" color="gray.700">
+                        {eventData.location}
+                      </Text>
+                    </HStack>
+                  )}
+
                   <HStack align="center" w="full" justify="space-between" gap={4}>
-                    <Icon as={FaMusic} color="green.400" boxSize={5} />
+                    <Icon as={FaUsers} color="purple.400" boxSize={5} />
                     <Text fontSize="lg" fontWeight="bold" color="gray.700">
-                      7:00 PM - 11:00 PM
+                      {eventData.current_registrations}/{eventData.max_capacity || '∞'} registered
                     </Text>
                   </HStack>
-                </Flex>
+                </VStack>
+              )}
 
-                <Box h="1px" bg="gray.200" w="full" />
+              <Divider borderColor="gray.200" />
 
-                {/* Registration Details */}
-                <Flex direction="column" gap={4} w="full">
-                  <Heading size="md" color="gray.700" textAlign="center">
-                    Registration Details
-                  </Heading>
-                  
-                  <HStack justify="space-between" w="full">
-                    <Text fontWeight="bold" color="gray.600">Name:</Text>
-                    <Text color="gray.800" textAlign="right" maxW="200px" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                      {registrationData.full_name}
-                    </Text>
-                  </HStack>
-                  
-                  <HStack justify="space-between" w="full">
-                    <Text fontWeight="bold" color="gray.600">Email:</Text>
-                    <Text color="gray.800" textAlign="right" maxW="200px" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
-                      {registrationData.email}
-                    </Text>
-                  </HStack>
-                  
-                  <HStack justify="space-between" w="full">
-                    <Text fontWeight="bold" color="gray.600">Mobile:</Text>
-                    <Text color="gray.800">{registrationData.mobile_number}</Text>
-                  </HStack>
-                  
-                  <HStack justify="space-between" w="full">
-                    <Text fontWeight="bold" color="gray.600">Year:</Text>
-                    <Text color="gray.800">{registrationData.studying_year} Year</Text>
-                  </HStack>
-                  
-                  <HStack justify="space-between" w="full">
-                    <Text fontWeight="bold" color="gray.600">Type:</Text>
+              {/* Registration Details */}
+              <VStack spacing={4} align="stretch">
+                <Heading size="md" color="gray.700" textAlign="center">
+                  Registration Details
+                </Heading>
+                
+                <HStack justify="space-between" w="full">
+                  <Text fontWeight="bold" color="gray.600">Name:</Text>
+                  <Text color="gray.800" textAlign="right" maxW="200px" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                    {registrationData.full_name}
+                  </Text>
+                </HStack>
+                
+                <HStack justify="space-between" w="full">
+                  <Text fontWeight="bold" color="gray.600">Email:</Text>
+                  <Text color="gray.800" textAlign="right" maxW="200px" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                    {registrationData.email}
+                  </Text>
+                </HStack>
+                
+                <HStack justify="space-between" w="full">
+                  <Text fontWeight="bold" color="gray.600">Mobile:</Text>
+                  <Text color="gray.800">{registrationData.mobile_number}</Text>
+                </HStack>
+                
+                <HStack justify="space-between" w="full">
+                  <Text fontWeight="bold" color="gray.600">Year:</Text>
+                  <HStack spacing={2}>
+                    <Text color="gray.800">Year {registrationData.studying_year}</Text>
                     <Badge 
                       colorScheme={registrationData.registration_type === 'fresher' ? 'green' : 'blue'}
-                      fontSize="sm"
+                      fontSize="xs"
                     >
-                      {registrationData.registration_type === 'fresher' ? 'Fresher' : 'Visitor'}
+                      {registrationData.registration_type === 'fresher' ? 'Fresher' : 'Senior'}
                     </Badge>
                   </HStack>
-                  
-                  <HStack justify="space-between" w="full">
-                    <Text fontWeight="bold" color="gray.600">Status:</Text>
-                    <Badge 
-                      colorScheme={
-                        registrationData.registration_type === 'fresher' 
-                          ? 'green' 
-                          : (registrationData as any).payment_status === 'completed' 
-                            ? 'green' 
-                            : 'red'
-                      }
-                      fontSize="sm"
-                    >
-                      {registrationData.registration_type === 'fresher' 
-                        ? 'Confirmed' 
+                </HStack>
+                
+                <HStack justify="space-between" w="full">
+                  <Text fontWeight="bold" color="gray.600">Status:</Text>
+                  <Badge 
+                    colorScheme={
+                      registrationData.registration_type === 'fresher' 
+                        ? 'green' 
                         : (registrationData as any).payment_status === 'completed' 
-                          ? 'Paid' 
-                          : 'Pending Payment'
-                      }
-                    </Badge>
-                  </HStack>
-                </Flex>
-
-                <Box h="1px" bg="gray.200" w="full" />
-
-                {/* QR Code */}
-                <Flex direction="column" align="center" gap={4}>
-                  <Heading size="md" color="gray.700" textAlign="center">
-                    Entry QR Code
-                  </Heading>
-                  
-                  <Box
-                    p={4}
-                    border="2px solid"
-                    borderColor="gray.200"
-                    borderRadius="lg"
-                    bg="white"
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    w="200px"
-                    h="200px"
+                          ? 'green' 
+                          : 'red'
+                    }
+                    fontSize="sm"
                   >
-                    <Text fontSize="sm" color="gray.500" textAlign="center">
-                      QR Code<br />
-                      {registrationData.qr_code || registrationData.id}
-                    </Text>
-                  </Box>
-                  
-                  <Text fontSize="sm" color="gray.500" textAlign="center">
-                    Scan this QR code at the entrance
-                  </Text>
-                </Flex>
+                    {registrationData.registration_type === 'fresher' 
+                      ? 'Confirmed' 
+                      : (registrationData as any).payment_status === 'completed' 
+                        ? 'Paid' 
+                        : 'Pending Payment'
+                    }
+                  </Badge>
+                </HStack>
 
-                {/* Important Notes */}
-                <Box p={4} bg="blue.50" borderRadius="lg" w="full" border="1px solid" borderColor="blue.200">
-                  <Text fontWeight="bold" fontSize="sm" color="blue.800" mb={2}>
-                    Important Instructions:
-                  </Text>
-                  <Text fontSize="sm" color="blue.700">
-                    • Bring a valid ID along with this ticket<br />
-                    • Arrive 15 minutes before the event starts<br />
-                    • Keep this ticket safe - no re-entry without it
+                {/* Payment Amount for Seniors */}
+                {registrationData.registration_type === 'senior' && (registrationData as any).amount_paid && (
+                  <HStack justify="space-between" w="full">
+                    <Text fontWeight="bold" color="gray.600">Amount Paid:</Text>
+                    <HStack spacing={1} color="green.600">
+                      <Icon as={FaDollarSign} />
+                      <Text fontWeight="bold">₹{(registrationData as any).amount_paid}</Text>
+                    </HStack>
+                  </HStack>
+                )}
+              </VStack>
+
+              <Divider borderColor="gray.200" />
+
+              {/* QR Code */}
+              <VStack spacing={4} align="center">
+                <Heading size="md" color="gray.700" textAlign="center">
+                  Entry QR Code
+                </Heading>
+                
+                <Box
+                  p={4}
+                  border="2px solid"
+                  borderColor="gray.200"
+                  borderRadius="lg"
+                  bg="white"
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  w="200px"
+                  h="200px"
+                >
+                  <Text fontSize="sm" color="gray.500" textAlign="center">
+                    QR Code<br />
+                    {registrationData.qr_code || registrationData.id}
                   </Text>
                 </Box>
-              </Flex>
-            </Box>
-          </MotionBox>
-
-          {/* Action Buttons */}
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <Flex direction="column" align="center" gap={4}>
-              <HStack w="full" maxW="500px" gap={4}>
-                <Button
-                  variant="solid"
-                  size="lg"
-                  flex="1"
-                  onClick={downloadAsPNG}
-                  bg="linear-gradient(135deg, #ff0080, #00ffff)"
-                  color="white"
-                  _hover={{
-                    bg: "linear-gradient(135deg, #00ffff, #ff0080)",
-                    transform: "scale(1.02)",
-                  }}
-                  _active={{
-                    transform: "scale(0.98)",
-                  }}
-                  transition="all 0.3s ease"
-                >
-                  <Icon as={FaDownload} mr={2} />
-                  Download PNG
-                </Button>
                 
-                <Button
-                  variant="outline"
-                  size="lg"
-                  flex="1"
-                  onClick={downloadAsPDF}
-                  borderColor="blue.400"
-                  color="blue.400"
-                  _hover={{
-                    bg: "blue.400",
-                    color: "white",
-                    transform: "scale(1.02)",
-                  }}
-                  _active={{
-                    transform: "scale(0.98)",
-                  }}
-                  transition="all 0.3s ease"
-                >
-                  <Icon as={FaDownload} mr={2} />
-                  Download PDF
-                </Button>
-              </HStack>
+                <Text fontSize="sm" color="gray.500" textAlign="center">
+                  Scan this QR code at the entrance
+                </Text>
+              </VStack>
+
+              {/* Important Notes */}
+              <Box p={4} bg="blue.50" borderRadius="lg" w="full" border="1px solid" borderColor="blue.200">
+                <Text fontWeight="bold" fontSize="sm" color="blue.800" mb={2}>
+                  Important Instructions:
+                </Text>
+                <Text fontSize="sm" color="blue.700">
+                  • Bring a valid ID along with this ticket<br />
+                  • Arrive 15 minutes before the event starts<br />
+                  • Keep this ticket safe - no re-entry without it
+                </Text>
+              </Box>
+            </VStack>
+          </Box>
+        </MotionBox>
+
+        {/* Action Buttons */}
+        <MotionBox
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <VStack spacing={6} align="stretch">
+            <HStack w="full" maxW="500px" mx="auto" gap={4}>
+              <Button
+                size="lg"
+                flex="1"
+                bg="#4ade80"
+                color="white"
+                _hover={{ 
+                  bg: "#22c55e",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 25px rgba(0,0,0,0.15)"
+                }}
+                leftIcon={<Icon as={FaDownload} />}
+                onClick={downloadAsPNG}
+                py={6}
+                fontSize="lg"
+                fontWeight="bold"
+              >
+                Download PNG
+              </Button>
               
               <Button
-                variant="ghost"
+                variant="outline"
+                size="lg"
+                flex="1"
                 color="white"
-                onClick={handleGoHome}
-                _hover={{
-                  transform: "scale(1.05)",
+                borderColor="white"
+                _hover={{ 
+                  bg: "rgba(255,255,255,0.1)",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 25px rgba(0,0,0,0.15)"
                 }}
-                _active={{
-                  transform: "scale(0.95)",
-                }}
-                transition="all 0.3s ease"
+                leftIcon={<Icon as={FaDownload} />}
+                onClick={downloadAsPDF}
+                py={6}
+                fontSize="lg"
+                fontWeight="bold"
               >
-                <Icon as={FaHome} mr={2} />
-                Back to Home
+                Download PDF
               </Button>
-            </Flex>
-          </MotionBox>
+            </HStack>
+            
+            <Button
+              variant="outline"
+              color="white"
+              borderColor="white"
+              _hover={{ bg: 'rgba(255,255,255,0.1)' }}
+              onClick={() => navigate('/user-dashboard')}
+              leftIcon={<Icon as={FaHome} />}
+              maxW="300px"
+              mx="auto"
+            >
+              Back to Dashboard
+            </Button>
+          </VStack>
         </MotionBox>
       </Container>
     </Box>

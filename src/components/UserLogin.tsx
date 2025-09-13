@@ -183,7 +183,7 @@ const UserLogin: React.FC<UserLoginProps> = ({ onLoginSuccess }) => {
                   textAlign="center"
                   fontSize="md"
                 >
-                  Sign in to access your Spark 2K25 tickets
+                  Sign in to access your event tickets
                 </Text>
               </VStack>
 

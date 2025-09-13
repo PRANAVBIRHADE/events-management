@@ -16,6 +16,7 @@ import UserLoginPage from './pages/UserLoginPage';
 import UserSignupPage from './pages/UserSignupPage';
 import UserProfilePage from './pages/UserProfilePage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
+import EventRegistrationPage from './pages/EventRegistrationPage';
 import DebugPage from './pages/DebugPage';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -112,6 +113,7 @@ function App() {
               <Route path="/verify-email" element={<EmailVerificationPage />} />
               <Route path="/user-dashboard" element={<UserDashboard />} />
               <Route path="/user-profile" element={<UserProfilePage />} />
+              <Route path="/register/:eventId" element={<EventRegistrationPage />} />
               <Route path="/debug" element={<DebugPage />} />
             </Routes>
           </MotionDiv>

@@ -250,21 +250,50 @@ const UserProfilePage: React.FC = () => {
   }
 
   return (
-    <Box minH="100vh" bg="gray.50">
+    <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" position="relative" overflow="hidden">
+      {/* Animated Background Elements */}
+      {[...Array(8)].map((_, i) => (
+        <MotionBox
+          key={i}
+          position="absolute"
+          borderRadius="full"
+          bg={`hsl(${Math.random() * 360}, 70%, 60%)`}
+          opacity={0.08}
+          animate={{
+            x: [0, Math.random() * 100 - 50],
+            y: [0, Math.random() * 100 - 50],
+            scale: [1, 1.2, 1],
+            rotate: [0, 360],
+          }}
+          transition={{
+            duration: Math.random() * 10 + 10,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 80 + 40}px`,
+            height: `${Math.random() * 80 + 40}px`,
+            zIndex: 0,
+          }}
+        />
+      ))}
       {/* Header */}
-      <Box bg="white" shadow="sm" borderBottom="1px" borderColor="gray.200">
+      <Box bg="rgba(255,255,255,0.05)" backdropFilter="blur(10px)" borderBottom="1px solid rgba(255,255,255,0.2)" zIndex={2}>
         <Container maxW="4xl" py={4}>
           <Flex justify="space-between" align="center">
             <HStack>
               <Button
                 variant="ghost"
+                color="white"
                 leftIcon={<Icon as={FaArrowLeft} />}
                 onClick={() => navigate('/user-dashboard')}
+                _hover={{ bg: 'rgba(255,255,255,0.1)' }}
               >
                 Back to Dashboard
               </Button>
             </HStack>
-            
             <HStack spacing={4}>
               <Button
                 size="sm"
@@ -272,6 +301,9 @@ const UserProfilePage: React.FC = () => {
                 leftIcon={<Icon as={FaSignOutAlt} />}
                 onClick={handleLogout}
                 colorScheme="red"
+                borderColor="white"
+                color="white"
+                _hover={{ bg: 'rgba(255,255,255,0.1)' }}
               >
                 Logout
               </Button>
@@ -279,9 +311,8 @@ const UserProfilePage: React.FC = () => {
           </Flex>
         </Container>
       </Box>
-
-      <Container maxW="4xl" py={8}>
-        <VStack spacing={8} align="stretch">
+      <Container maxW="4xl" py={12} position="relative" zIndex={2}>
+        <VStack spacing={10} align="stretch">
           {/* Profile Header */}
           <MotionBox
             initial={{ opacity: 0, y: 20 }}
@@ -289,25 +320,29 @@ const UserProfilePage: React.FC = () => {
             transition={{ duration: 0.6 }}
           >
             <VStack spacing={4} textAlign="center">
-              <Heading size="xl" color="gray.800">
+              <Heading size="xl" color="white" textShadow="0 2px 8px rgba(0,0,0,0.15)">
                 My Profile
               </Heading>
-              <Text fontSize="lg" color="gray.600">
+              <Text fontSize="lg" color="rgba(255,255,255,0.85)">
                 Manage your account information and preferences
               </Text>
             </VStack>
           </MotionBox>
-
           {/* Profile Information */}
           <MotionCard
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
+            bg="rgba(255,255,255,0.15)"
+            backdropFilter="blur(16px)"
+            borderRadius="2xl"
+            border="1px solid rgba(255,255,255,0.25)"
+            boxShadow="0 8px 32px 0 rgba(31, 38, 135, 0.15)"
             variant="outline"
           >
             <CardHeader>
               <Flex justify="space-between" align="center">
-                <Heading size="md" color="gray.800">
+                <Heading size="md" color="white">
                   Account Information
                 </Heading>
                 {!isEditing && (
@@ -317,35 +352,37 @@ const UserProfilePage: React.FC = () => {
                     onClick={handleEdit}
                     colorScheme="blue"
                     variant="outline"
+                    borderColor="white"
+                    color="white"
+                    _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                   >
                     Edit Profile
                   </Button>
                 )}
               </Flex>
             </CardHeader>
-            
             <CardBody>
               <VStack spacing={6} align="stretch">
                 {/* Email (Read-only) */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="gray.700">
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
                     <Icon as={FaEnvelope} mr={2} />
                     Email Address
                   </FormLabel>
                   <Input
                     value={user?.email || ''}
                     isReadOnly
-                    bg="gray.50"
-                    borderColor="gray.200"
+                    bg="rgba(255,255,255,0.08)"
+                    borderColor="rgba(255,255,255,0.2)"
+                    color="white"
                   />
-                  <Text fontSize="xs" color="gray.500" mt={1}>
+                  <Text fontSize="xs" color="rgba(255,255,255,0.7)" mt={1}>
                     Email cannot be changed
                   </Text>
                 </FormControl>
-
                 {/* Full Name */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="gray.700">
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
                     <Icon as={FaUser} mr={2} />
                     Full Name
                   </FormLabel>
@@ -354,17 +391,19 @@ const UserProfilePage: React.FC = () => {
                       value={editData.full_name}
                       onChange={(e) => setEditData(prev => ({ ...prev, full_name: e.target.value }))}
                       placeholder="Enter your full name"
+                      bg="rgba(255,255,255,0.08)"
+                      borderColor="rgba(255,255,255,0.2)"
+                      color="white"
                     />
                   ) : (
-                    <Text fontSize="md" color="gray.800" py={2}>
+                    <Text fontSize="md" color="white" py={2}>
                       {profile.full_name}
                     </Text>
                   )}
                 </FormControl>
-
                 {/* Mobile Number */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="gray.700">
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
                     <Icon as={FaPhone} mr={2} />
                     Mobile Number
                   </FormLabel>
@@ -373,17 +412,19 @@ const UserProfilePage: React.FC = () => {
                       value={editData.mobile_number}
                       onChange={(e) => setEditData(prev => ({ ...prev, mobile_number: e.target.value }))}
                       placeholder="Enter your mobile number"
+                      bg="rgba(255,255,255,0.08)"
+                      borderColor="rgba(255,255,255,0.2)"
+                      color="white"
                     />
                   ) : (
-                    <Text fontSize="md" color="gray.800" py={2}>
+                    <Text fontSize="md" color="white" py={2}>
                       {profile.mobile_number}
                     </Text>
                   )}
                 </FormControl>
-
                 {/* Studying Year */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="gray.700">
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
                     <Icon as={FaGraduationCap} mr={2} />
                     Studying Year
                   </FormLabel>
@@ -392,6 +433,9 @@ const UserProfilePage: React.FC = () => {
                       as="select"
                       value={editData.studying_year}
                       onChange={(e) => setEditData(prev => ({ ...prev, studying_year: parseInt(e.target.value) }))}
+                      bg="rgba(255,255,255,0.08)"
+                      borderColor="rgba(255,255,255,0.2)"
+                      color="white"
                     >
                       <option value={1}>1st Year (Fresher)</option>
                       <option value={2}>2nd Year (Senior)</option>
@@ -400,7 +444,7 @@ const UserProfilePage: React.FC = () => {
                     </Input>
                   ) : (
                     <HStack>
-                      <Text fontSize="md" color="gray.800" py={2}>
+                      <Text fontSize="md" color="white" py={2}>
                         Year {profile.studying_year}
                       </Text>
                       <Badge 
@@ -412,14 +456,13 @@ const UserProfilePage: React.FC = () => {
                     </HStack>
                   )}
                 </FormControl>
-
                 {/* Account Created */}
                 <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="bold" color="gray.700">
+                  <FormLabel fontSize="sm" fontWeight="bold" color="white">
                     <Icon as={FaCalendar} mr={2} />
                     Account Created
                   </FormLabel>
-                  <Text fontSize="md" color="gray.800" py={2}>
+                  <Text fontSize="md" color="white" py={2}>
                     {new Date(profile.created_at).toLocaleDateString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
@@ -428,7 +471,6 @@ const UserProfilePage: React.FC = () => {
                     })}
                   </Text>
                 </FormControl>
-
                 {/* Edit Actions */}
                 {isEditing && (
                   <HStack spacing={4} pt={4}>
@@ -446,6 +488,9 @@ const UserProfilePage: React.FC = () => {
                       leftIcon={<Icon as={FaTimes} />}
                       onClick={handleCancel}
                       isDisabled={isSaving}
+                      color="white"
+                      borderColor="white"
+                      _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                     >
                       Cancel
                     </Button>
@@ -454,36 +499,44 @@ const UserProfilePage: React.FC = () => {
               </VStack>
             </CardBody>
           </MotionCard>
-
           {/* Quick Actions */}
           <MotionCard
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
+            bg="rgba(255,255,255,0.15)"
+            backdropFilter="blur(16px)"
+            borderRadius="2xl"
+            border="1px solid rgba(255,255,255,0.25)"
+            boxShadow="0 8px 32px 0 rgba(31, 38, 135, 0.15)"
             variant="outline"
           >
             <CardHeader>
-              <Heading size="md" color="gray.800">
+              <Heading size="md" color="white">
                 Quick Actions
               </Heading>
             </CardHeader>
-            
             <CardBody>
               <VStack spacing={4} align="stretch">
                 <Button
                   leftIcon={<Icon as={FaTicketAlt} />}
                   onClick={() => navigate('/user-dashboard')}
                   colorScheme="blue"
-                  variant="outline"
+                  variant="solid"
+                  bg="#4ade80"
+                  color="white"
+                  _hover={{ bg: '#22c55e' }}
                 >
                   View My Tickets
                 </Button>
-                
                 <Button
                   leftIcon={<Icon as={FaSignOutAlt} />}
                   onClick={handleLogout}
                   colorScheme="red"
                   variant="outline"
+                  color="white"
+                  borderColor="white"
+                  _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                 >
                   Sign Out
                 </Button>
@@ -492,7 +545,6 @@ const UserProfilePage: React.FC = () => {
           </MotionCard>
         </VStack>
       </Container>
-
       {/* Logout Confirmation Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="md">
         <ModalOverlay />

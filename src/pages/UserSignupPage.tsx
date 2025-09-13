@@ -207,7 +207,7 @@ const UserSignupPage: React.FC = () => {
                 textAlign="center"
                 textShadow="0 2px 4px rgba(0,0,0,0.3)"
               >
-                Join Spark 2K25 ⚡
+                Join MPGI SOE
               </Heading>
               <Text
                 color="rgba(255,255,255,0.9)"
@@ -215,7 +215,7 @@ const UserSignupPage: React.FC = () => {
                 textAlign="center"
                 textShadow="0 1px 2px rgba(0,0,0,0.3)"
               >
-                Create your account and get ready for the party!
+                Create your account and get ready for exciting events!
               </Text>
             </VStack>
           </VStack>
