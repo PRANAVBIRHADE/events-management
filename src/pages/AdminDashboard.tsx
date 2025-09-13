@@ -159,15 +159,22 @@ const AdminDashboard: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
+      console.log('Fetching events...');
       const { data, error } = await supabase
         .from('events')
         .select('*')
         .order('event_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase fetch error:', error);
+        throw error;
+      }
+      
+      console.log('Events fetched successfully:', data);
       setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
+      alert(`Error fetching events: ${error.message || 'Please check your connection.'}`);
     }
   };
 
@@ -332,52 +339,62 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleEditEvent = (event: Event) => {
-    // Convert DB fields to form state
-    const year_pricing: { [year: number]: { type: 'free' | 'paid', amount: number } } = {};
+    console.log('Edit event clicked:', event);
     
-    // Initialize all years as free by default
-    [1, 2, 3, 4].forEach(year => {
-      year_pricing[year] = { type: 'free', amount: 0 };
-    });
-    
-    // Set free years
-    if (event.free_for_years) {
-      event.free_for_years.forEach(year => {
+    try {
+      // Convert DB fields to form state
+      const year_pricing: { [year: number]: { type: 'free' | 'paid', amount: number } } = {};
+      
+      // Initialize all years as free by default
+      [1, 2, 3, 4].forEach(year => {
         year_pricing[year] = { type: 'free', amount: 0 };
       });
-    }
-    
-    // Set paid years
-    if (event.paid_for_years) {
-      event.paid_for_years.forEach(year => {
-        year_pricing[year] = { 
-          type: 'paid', 
-          amount: event.year_specific_pricing?.[year] || event.base_price || 99 
-        };
-      });
-    }
+      
+      // Set free years
+      if (event.free_for_years) {
+        event.free_for_years.forEach(year => {
+          year_pricing[year] = { type: 'free', amount: 0 };
+        });
+      }
+      
+      // Set paid years
+      if (event.paid_for_years) {
+        event.paid_for_years.forEach(year => {
+          year_pricing[year] = { 
+            type: 'paid', 
+            amount: event.year_specific_pricing?.[year] || event.base_price || 99 
+          };
+        });
+      }
 
-    setEventForm({
-      name: event.name,
-      description: event.description || '',
-      event_date: new Date(event.event_date).toISOString().slice(0, 16), // Format for datetime-local input
-      location: event.location || '',
-      max_capacity: event.max_capacity || 100,
-      category: event.category || 'general',
-      event_type: event.event_type || 'free',
-      price: event.price || 0,
-      pricing_type: 'year_based', // This will be overridden by the new UI
-      year_pricing,
-      registration_deadline: event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : '',
-      organizer: event.organizer || '',
-      contact_email: event.contact_email || '',
-      contact_phone: event.contact_phone || '',
-      requirements: event.requirements || '',
-      tags: event.tags ? event.tags.join(', ') : ''
-    });
-    setSelectedEvent(event);
-    setIsEditingEvent(true);
-    onEventModalOpen();
+      const formData = {
+        name: event.name,
+        description: event.description || '',
+        event_date: new Date(event.event_date).toISOString().slice(0, 16), // Format for datetime-local input
+        location: event.location || '',
+        max_capacity: event.max_capacity || 100,
+        category: event.category || 'general',
+        event_type: event.event_type || 'free',
+        price: event.price || 0,
+        pricing_type: 'year_based', // This will be overridden by the new UI
+        year_pricing,
+        registration_deadline: event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : '',
+        organizer: event.organizer || '',
+        contact_email: event.contact_email || '',
+        contact_phone: event.contact_phone || '',
+        requirements: event.requirements || '',
+        tags: event.tags ? event.tags.join(', ') : ''
+      };
+
+      console.log('Setting form data:', formData);
+      setEventForm(formData);
+      setSelectedEvent(event);
+      setIsEditingEvent(true);
+      onEventModalOpen();
+    } catch (error) {
+      console.error('Error in handleEditEvent:', error);
+      alert('Error opening edit form. Please try again.');
+    }
   };
 
   const handleSaveEvent = async () => {
@@ -449,21 +466,34 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
+    console.log('Delete event clicked:', eventId);
+    
+    if (!window.confirm('Are you sure you want to delete this event?')) {
+      console.log('Delete cancelled by user');
+      return;
+    }
 
     try {
+      console.log('Attempting to delete event:', eventId);
+      
       const { error } = await supabase
         .from('events')
         .delete()
         .eq('id', eventId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
+      
+      console.log('Event deleted successfully');
       
       // Refresh events list
       await fetchEvents();
+      console.log('Events list refreshed');
     } catch (error) {
       console.error('Error deleting event:', error);
-      alert('Error deleting event. Please try again.');
+      alert(`Error deleting event: ${error.message || 'Please try again.'}`);
     }
   };
 
