@@ -49,7 +49,7 @@ import {
   FaClock,
   FaDollarSign
 } from 'react-icons/fa';
-import { supabase, AllRegistration, Event } from '../lib/supabase';
+import { supabase, AllRegistration, Event, UserProfile } from '../lib/supabase';
 import AdminLogin from '../components/AdminLogin';
 
 const MotionBox = motion(Box);
@@ -87,6 +87,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedRegistration, setSelectedRegistration] = useState<AllRegistration | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   
   // Update eventForm state
   const [eventForm, setEventForm] = useState<EventFormData>({
@@ -125,6 +126,7 @@ const AdminDashboard: React.FC = () => {
     if (isAuthenticated) {
       fetchRegistrations();
       fetchEvents();
+      fetchUsers(); // fetch users on mount
     }
   }, [isAuthenticated]);
 
@@ -519,6 +521,20 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Fetch users
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center">
@@ -693,14 +709,114 @@ const AdminDashboard: React.FC = () => {
         </Box>
 
         {/* Main Tabs */}
-        <Tabs>
-          <TabList>
-            <Tab>Events ({events.length})</Tab>
-            <Tab>Paid Seniors ({seniorRegistrations.length})</Tab>
-            <Tab>Freshers ({fresherRegistrations.length})</Tab>
+        <Tabs variant="enclosed" colorScheme="blue" isFitted>
+          <TabList mb={4}>
+            <Tab>Registrations</Tab>
+            <Tab>Events</Tab>
+            <Tab>Users</Tab>
           </TabList>
-
           <TabPanels>
+            {/* Registrations TabPanel */}
+            <TabPanel p={0} mt={6}>
+              <Box bg="white" borderRadius="lg" shadow="md" overflow="hidden">
+                <Box p={4} borderBottom="1px solid" borderColor="gray.200" bg="gray.50">
+                  <Flex justify="space-between" align="center">
+                    <Text fontWeight="medium" color="gray.700">
+                      Registrations ({totalRegistrations})
+                    </Text>
+                    <Button
+                      size="sm"
+                      colorScheme="green"
+                      variant="outline"
+                      onClick={() => handleExportCSV('all')}
+                      leftIcon={<Icon as={FaDownload} />}
+                    >
+                      Export All CSV
+                    </Button>
+                  </Flex>
+                </Box>
+                <Box overflowX="auto">
+                  <Box as="table" w="full">
+                    <Box as="thead" bg="gray.50">
+                      <Box as="tr">
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Name</Box>
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Email</Box>
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Mobile</Box>
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Year</Box>
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Type</Box>
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Status</Box>
+                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Actions</Box>
+                      </Box>
+                    </Box>
+                    <Box as="tbody">
+                      {filteredRegistrations.map((registration) => (
+                        <Box as="tr" key={registration.id} borderBottom="1px solid" borderColor="gray.100" _hover={{ bg: "gray.50" }}>
+                          <Box as="td" p={4}>
+                            <Text fontWeight="medium">{registration.full_name}</Text>
+                          </Box>
+                          <Box as="td" p={4}>
+                            <Text fontSize="sm" color="gray.600">{registration.email}</Text>
+                          </Box>
+                          <Box as="td" p={4}>
+                            <Text fontSize="sm">{registration.mobile_number}</Text>
+                          </Box>
+                          <Box as="td" p={4}>
+                            <Text fontSize="sm">{registration.studying_year} Year</Text>
+                          </Box>
+                          <Box as="td" p={4}>
+                            <Badge colorScheme={registration.registration_type === 'fresher' ? 'green' : 'purple'}>
+                              {registration.registration_type?.toUpperCase() || 'N/A'}
+                            </Badge>
+                          </Box>
+                          <Box as="td" p={4}>
+                            <HStack gap={2}>
+                              <Badge colorScheme={registration.payment_status === 'paid' ? 'green' : 'yellow'}>
+                                {registration.payment_status}
+                              </Badge>
+                              {registration.is_checked_in && (
+                                <Badge colorScheme="blue">Checked In</Badge>
+                              )}
+                            </HStack>
+                          </Box>
+                          <Box as="td" p={4}>
+                            <HStack gap={2}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openDetails(registration)}
+                                leftIcon={<Icon as={FaEye} />}
+                              >
+                                View
+                              </Button>
+                              {!registration.is_checked_in && (
+                                <Button
+                                  size="sm"
+                                  colorScheme="green"
+                                  onClick={() => handleCheckIn(registration)}
+                                  leftIcon={<Icon as={FaCheckCircle} />}
+                                >
+                                  Check In
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                colorScheme="red"
+                                variant="outline"
+                                onClick={() => handleDeleteRegistration(registration)}
+                                leftIcon={<Icon as={FaTrash} />}
+                              >
+                                Delete
+                              </Button>
+                            </HStack>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </TabPanel>
+
             {/* Events Tab */}
             <TabPanel p={0} mt={6}>
               <Box bg="white" borderRadius="lg" shadow="md" overflow="hidden">
@@ -1000,6 +1116,45 @@ const AdminDashboard: React.FC = () => {
                       ))}
                     </Box>
                   </Box>
+                </Box>
+              </Box>
+            </TabPanel>
+
+            {/* Users Tab */}
+            <TabPanel>
+              <Box bg="white" p={6} borderRadius="lg" shadow="md">
+                <Heading size="md" mb={4}>All Registered Users</Heading>
+                <Box overflowX="auto">
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f7fafc' }}>
+                        <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Name</th>
+                        <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Email</th>
+                        <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Studying Year</th>
+                        <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Mobile Number</th>
+                        <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Created At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} style={{ textAlign: 'center', padding: '16px' }}>
+                            <Text color="gray.500">No users found.</Text>
+                          </td>
+                        </tr>
+                      ) : (
+                        users.map(user => (
+                          <tr key={user.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                            <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.full_name}</td>
+                            <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.email}</td>
+                            <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.studying_year}</td>
+                            <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.mobile_number || '-'}</td>
+                            <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{new Date(user.created_at).toLocaleString()}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </Box>
               </Box>
             </TabPanel>
