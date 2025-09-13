@@ -1121,7 +1121,7 @@ const AdminDashboard: React.FC = () => {
               </Box>
             </TabPanel>
 
-            {/* Users Tab */}
+            {/* USERS TAB: Only user_profiles data, no registrations */}
             <TabPanel>
               <Box bg="white" p={6} borderRadius="lg" shadow="md">
                 <Heading size="md" mb={4}>All Registered Users</Heading>
