@@ -50,6 +50,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Event, FresherRegistration, SeniorTicketRegistration, Registration } from '../lib/supabase';
 import QRCode from 'qrcode.react';
+import EventCard from '../components/EventCard';
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -166,7 +167,8 @@ const UserDashboardNew: React.FC = () => {
     }
   };
 
-  const handleEventRegistration = async (event: Event) => {
+  // Handler for registration button (opens modal)
+  const handleRegister = (event: Event) => {
     setSelectedEvent(event);
     onOpen();
   };
@@ -365,66 +367,13 @@ const UserDashboardNew: React.FC = () => {
               ) : (
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
                   {events.map((event, index) => (
-                    <MotionCard
+                    <EventCard
                       key={event.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                      variant="outline"
-                      _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
-                    >
-                      <CardHeader>
-                        <VStack spacing={2} align="start">
-                          <Heading size="md" color="gray.800">
-                            {event.name}
-                          </Heading>
-                          <HStack>
-                            <Badge colorScheme="blue" fontSize="sm">
-                              {new Date(event.event_date).toLocaleDateString()}
-                            </Badge>
-                            <Badge colorScheme="green" fontSize="sm">
-                              {profile?.studying_year === 1 ? 'FREE' : '₹99'}
-                            </Badge>
-                          </HStack>
-                        </VStack>
-                      </CardHeader>
-                      
-                      <CardBody pt={0}>
-                        <VStack spacing={4} align="stretch">
-                          <Text color="gray.600" fontSize="sm">
-                            {event.description}
-                          </Text>
-                          
-                          <HStack spacing={2} color="gray.500" fontSize="sm">
-                            <Icon as={FaMapMarkerAlt} />
-                            <Text>{event.location}</Text>
-                          </HStack>
-                          
-                          <HStack spacing={2} color="gray.500" fontSize="sm">
-                            <Icon as={FaCalendar} />
-                            <Text>
-                              {new Date(event.event_date).toLocaleString('en-US', {
-                                weekday: 'long',
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </Text>
-                          </HStack>
-                          
-                          <Button
-                            colorScheme="blue"
-                            leftIcon={<Icon as={FaPlus} />}
-                            onClick={() => handleEventRegistration(event)}
-                            size="sm"
-                          >
-                            Register for Event
-                          </Button>
-                        </VStack>
-                      </CardBody>
-                    </MotionCard>
+                      event={event}
+                      userProfile={profile}
+                      onRegister={handleRegister}
+                      showRegisterButton={true}
+                    />
                   ))}
                 </SimpleGrid>
               )}

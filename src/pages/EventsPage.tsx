@@ -51,6 +51,7 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Event } from '../lib/supabase';
+import EventCard from '../components/EventCard';
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -175,7 +176,8 @@ const EventsPage: React.FC = () => {
     return icons[category as keyof typeof icons] || '📅';
   };
 
-  const handleEventClick = (event: Event) => {
+  // Handler for registration button
+  const handleRegister = (event: Event) => {
     if (user) {
       navigate(`/register/${event.id}`);
     } else {
@@ -449,103 +451,13 @@ const EventsPage: React.FC = () => {
         ) : (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
             {filteredEvents.map((event, index) => (
-              <MotionCard
+              <EventCard
                 key={event.id}
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                bg="rgba(255, 255, 255, 0.1)"
-                backdropFilter="blur(10px)"
-                border="1px solid rgba(255, 255, 255, 0.2)"
-                cursor="pointer"
-                onClick={() => handleEventClick(event)}
-                whileHover={{ 
-                  scale: 1.02,
-                  bg: "rgba(255, 255, 255, 0.15)"
-                }}
-              >
-                <CardHeader>
-                  <VStack spacing={3} align="start">
-                    <HStack spacing={2}>
-                      <Badge
-                        colorScheme={getCategoryColor(event.category)}
-                        variant="solid"
-                        fontSize="sm"
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                      >
-                        {getCategoryIcon(event.category)} {event.category.toUpperCase()}
-                      </Badge>
-                      <Badge
-                        colorScheme={event.event_type === 'free' ? 'green' : event.event_type === 'paid' ? 'blue' : 'purple'}
-                        variant="outline"
-                        fontSize="xs"
-                      >
-                        {event.event_type.toUpperCase()}
-                      </Badge>
-                    </HStack>
-                    
-                    <Heading size="md" color="white" noOfLines={2}>
-                      {event.name}
-                    </Heading>
-                    
-                    {event.description && (
-                      <Text color="rgba(255,255,255,0.8)" fontSize="sm" noOfLines={3}>
-                        {event.description}
-                      </Text>
-                    )}
-                  </VStack>
-                </CardHeader>
-
-                <CardBody pt={0}>
-                  <VStack spacing={3} align="stretch">
-                    <HStack spacing={3} fontSize="sm" color="rgba(255,255,255,0.7)">
-                      <HStack spacing={1}>
-                        <Icon as={FaCalendarAlt} />
-                        <Text>{formatEventDate(event.event_date)}</Text>
-                      </HStack>
-                      <HStack spacing={1}>
-                        <Icon as={FaClock} />
-                        <Text>{formatEventTime(event.event_date)}</Text>
-                      </HStack>
-                    </HStack>
-
-                    {event.location && (
-                      <HStack spacing={2} fontSize="sm" color="rgba(255,255,255,0.7)">
-                        <Icon as={FaMapMarkerAlt} />
-                        <Text noOfLines={1}>{event.location}</Text>
-                      </HStack>
-                    )}
-
-                    <HStack justify="space-between" fontSize="sm">
-                      <HStack spacing={2} color="rgba(255,255,255,0.7)">
-                        <Icon as={FaUsers} />
-                        <Text>{event.current_registrations}/{event.max_capacity || '∞'} registered</Text>
-                      </HStack>
-                      
-                      {event.price > 0 && (
-                        <HStack spacing={1} color="#4ade80">
-                          <Icon as={FaDollarSign} />
-                          <Text fontWeight="bold">₹{event.price}</Text>
-                        </HStack>
-                      )}
-                    </HStack>
-
-                    <Divider borderColor="rgba(255,255,255,0.2)" />
-
-                    <Button
-                      bg="#4ade80"
-                      color="white"
-                      _hover={{ bg: "#22c55e" }}
-                      size="sm"
-                      leftIcon={<Icon as={FaTicketAlt} />}
-                    >
-                      {event.event_type === 'free' ? 'Register Free' : `Register - ₹${event.price}`}
-                    </Button>
-                  </VStack>
-                </CardBody>
-              </MotionCard>
+                event={event}
+                userProfile={user ? { studying_year: user.user_metadata?.studying_year || 1 } : undefined}
+                onRegister={handleRegister}
+                showRegisterButton={true}
+              />
             ))}
           </SimpleGrid>
         )}
