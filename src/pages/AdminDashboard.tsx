@@ -174,7 +174,8 @@ const AdminDashboard: React.FC = () => {
       setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
-      alert(`Error fetching events: ${error.message || 'Please check your connection.'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Please check your connection.';
+      alert(`Error fetching events: ${errorMessage}`);
     }
   };
 
@@ -493,7 +494,8 @@ const AdminDashboard: React.FC = () => {
       console.log('Events list refreshed');
     } catch (error) {
       console.error('Error deleting event:', error);
-      alert(`Error deleting event: ${error.message || 'Please try again.'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Please try again.';
+      alert(`Error deleting event: ${errorMessage}`);
     }
   };
 
