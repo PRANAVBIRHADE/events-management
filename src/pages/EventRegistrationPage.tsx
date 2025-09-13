@@ -256,7 +256,7 @@ const EventRegistrationPage: React.FC = () => {
               mobile_number: profile.mobile_number,
               studying_year: profile.studying_year,
               registration_type: 'senior',
-              amount_paid: event.price || 99.00,
+              amount_paid: registrationPrice,
               payment_status: 'pending',
               is_checked_in: false,
               qr_code: `MPGI-${event.id}-${user.id}-${Date.now()}`,
@@ -341,7 +341,35 @@ const EventRegistrationPage: React.FC = () => {
 
   const isFresher = profile?.studying_year === 1;
   const isEventFree = event.event_type === 'free';
-  const registrationPrice = isFresher ? 0 : (event.price || 99);
+  
+  // Calculate registration price based on new pricing system
+  const getRegistrationPrice = () => {
+    if (isEventFree) return 0;
+    
+    const userYear = profile?.studying_year || 1;
+    
+    // Check if user year is in free years
+    if (event.free_for_years && event.free_for_years.includes(userYear)) {
+      return 0;
+    }
+    
+    // Check if user year is in paid years
+    if (event.paid_for_years && event.paid_for_years.includes(userYear)) {
+      // If year-based pricing, check for specific year price
+      if (event.pricing_type === 'year_based' && event.year_specific_pricing) {
+        const yearPrice = event.year_specific_pricing[userYear];
+        return yearPrice || event.base_price || 99;
+      } else {
+        // Use base price for fixed pricing
+        return event.base_price || event.price || 99;
+      }
+    }
+    
+    // Default to base price
+    return event.base_price || event.price || 99;
+  };
+  
+  const registrationPrice = getRegistrationPrice();
 
   return (
     <Box minH="100vh" bg="linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)" position="relative" overflow="hidden">
@@ -494,10 +522,10 @@ const EventRegistrationPage: React.FC = () => {
                   <Text>{event.current_registrations}/{event.max_capacity || '∞'} registered</Text>
                 </HStack>
                 
-                {event.price > 0 && (
+                {registrationPrice > 0 && (
                   <HStack spacing={1} color="#4ade80">
                     <Icon as={FaDollarSign} />
-                    <Text fontWeight="bold">₹{event.price}</Text>
+                    <Text fontWeight="bold">₹{registrationPrice}</Text>
                   </HStack>
                 )}
               </HStack>
