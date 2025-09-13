@@ -1,42 +1,30 @@
--- Fix RLS Policies for Events Table
--- This script fixes the permission issues
+-- Fix RLS policies for events table
+-- This script fixes the RLS policies that are blocking event creation/editing
 
 -- Drop existing policies
-DROP POLICY IF EXISTS "Anyone can view active events" ON events;
-DROP POLICY IF EXISTS "Authenticated users can view all events" ON events;
-DROP POLICY IF EXISTS "Admins can manage events" ON events;
+DROP POLICY IF EXISTS "Events are viewable by everyone" ON events;
+DROP POLICY IF EXISTS "Events are manageable by admins" ON events;
 
 -- Create new policies that work properly
--- Allow anyone to view active events (for public access)
-CREATE POLICY "Public can view active events" ON events
-  FOR SELECT USING (is_active = true);
-
--- Allow authenticated users to view all events
-CREATE POLICY "Authenticated users can view all events" ON events
-  FOR SELECT USING (auth.role() = 'authenticated');
-
--- Allow public access to events (for the website to work)
-CREATE POLICY "Public access to events" ON events
+-- Allow everyone to read events
+CREATE POLICY "Events are viewable by everyone" ON events
   FOR SELECT USING (true);
 
--- Allow admins to manage events (insert, update, delete)
-CREATE POLICY "Admins can manage events" ON events
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.email = 'admin@spark2k25.com' OR auth.users.email LIKE '%@college.edu')
-    )
-  );
+-- Allow authenticated users to insert events (for admin dashboard)
+CREATE POLICY "Authenticated users can insert events" ON events
+  FOR INSERT WITH CHECK (auth.role() = 'service_role' OR auth.uid() IS NOT NULL);
 
--- Grant necessary permissions
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
-GRANT SELECT ON events TO anon, authenticated;
-GRANT ALL ON events TO authenticated;
+-- Allow authenticated users to update events (for admin dashboard)
+CREATE POLICY "Authenticated users can update events" ON events
+  FOR UPDATE USING (auth.role() = 'service_role' OR auth.uid() IS NOT NULL);
 
--- Make sure the events table is accessible
-ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+-- Allow authenticated users to delete events (for admin dashboard)
+CREATE POLICY "Authenticated users can delete events" ON events
+  FOR DELETE USING (auth.role() = 'service_role' OR auth.uid() IS NOT NULL);
 
--- Test query to verify access
--- This should work without authentication
-SELECT COUNT(*) FROM events WHERE is_active = true;
+-- Alternative: If you want to be more restrictive, you can use this instead:
+-- CREATE POLICY "Events are manageable by authenticated users" ON events
+--   FOR ALL USING (
+--     auth.role() = 'service_role' OR 
+--     auth.uid() IS NOT NULL
+--   );

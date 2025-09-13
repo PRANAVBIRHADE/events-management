@@ -441,22 +441,36 @@ const AdminDashboard: React.FC = () => {
 
       if (isEditingEvent && selectedEvent) {
         // Update existing event
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('events')
           .update(eventData)
-          .eq('id', selectedEvent.id);
+          .eq('id', selectedEvent.id)
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        // Update local state immediately
+        setEvents(prevEvents => 
+          prevEvents.map(event => 
+            event.id === selectedEvent.id ? { ...event, ...data } : event
+          )
+        );
       } else {
         // Create new event
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('events')
-          .insert([eventData]);
+          .insert([eventData])
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        // Update local state immediately
+        setEvents(prevEvents => [...prevEvents, data]);
       }
 
-      // Refresh events list
+      // Also refresh from server to ensure consistency
       await fetchEvents();
       onEventModalClose();
       resetEventForm();
@@ -489,9 +503,15 @@ const AdminDashboard: React.FC = () => {
       
       console.log('Event deleted successfully');
       
-      // Refresh events list
+      // Update local state immediately for better UX
+      setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+      
+      // Also refresh from server to ensure consistency
       await fetchEvents();
       console.log('Events list refreshed');
+      
+      // Show success message
+      alert('Event deleted successfully!');
     } catch (error) {
       console.error('Error deleting event:', error);
       const errorMessage = error instanceof Error ? error.message : 'Please try again.';

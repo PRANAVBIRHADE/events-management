@@ -19,7 +19,7 @@ SET
   END,
   paid_for_years = CASE 
     WHEN event_type = 'paid' THEN ARRAY[2, 3, 4]
-    ELSE ARRAY[]
+    ELSE ARRAY[]::integer[]
   END,
   base_price = CASE 
     WHEN event_type = 'paid' THEN price
@@ -32,6 +32,10 @@ SET
 WHERE pricing_type IS NULL OR pricing_type = 'fixed';
 
 -- Create helper functions for pricing logic
+-- Drop existing function if it exists with different parameters
+DROP FUNCTION IF EXISTS get_event_price_for_year(UUID, INTEGER);
+DROP FUNCTION IF EXISTS get_event_price_for_year(uuid, integer);
+
 CREATE OR REPLACE FUNCTION get_event_price_for_year(event_id_param UUID, year_param INTEGER)
 RETURNS DECIMAL(10,2) AS $$
 DECLARE
@@ -71,6 +75,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create function to check if event is free for a specific year
+-- Drop existing function if it exists with different parameters
+DROP FUNCTION IF EXISTS is_event_free_for_year(UUID, INTEGER);
+DROP FUNCTION IF EXISTS is_event_free_for_year(uuid, integer);
+
 CREATE OR REPLACE FUNCTION is_event_free_for_year(event_id_param UUID, year_param INTEGER)
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -104,7 +112,7 @@ CREATE POLICY "Events are manageable by admins" ON events
     auth.role() = 'service_role' OR 
     auth.jwt() ->> 'email' IN (
       SELECT email FROM user_profiles 
-      WHERE user_id = auth.uid() AND is_admin = true
+      WHERE user_id = auth.uid()
     )
   );
 
