@@ -27,6 +27,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
+  Divider,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
