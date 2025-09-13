@@ -54,7 +54,7 @@ import AdminLogin from '../components/AdminLogin';
 
 const MotionBox = motion(Box);
 
-// Event form interface
+// Update EventFormData interface
 interface EventFormData {
   name: string;
   description: string;
@@ -65,10 +65,7 @@ interface EventFormData {
   event_type: string;
   price: number;
   pricing_type: string;
-  free_for_years: number[];
-  paid_for_years: number[];
-  base_price: number;
-  year_specific_pricing: { [key: number]: number };
+  year_pricing: { [year: number]: { type: 'free' | 'paid', amount: number } };
   registration_deadline: string;
   organizer: string;
   contact_email: string;
@@ -91,7 +88,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
   
-  // Event form state
+  // Update eventForm state
   const [eventForm, setEventForm] = useState<EventFormData>({
     name: '',
     description: '',
@@ -101,11 +98,13 @@ const AdminDashboard: React.FC = () => {
     category: 'general',
     event_type: 'free',
     price: 0,
-    pricing_type: 'fixed',
-    free_for_years: [1],
-    paid_for_years: [2, 3, 4],
-    base_price: 99.00,
-    year_specific_pricing: {},
+    pricing_type: 'year_based',
+    year_pricing: {
+      1: { type: 'free', amount: 0 },
+      2: { type: 'paid', amount: 99 },
+      3: { type: 'paid', amount: 99 },
+      4: { type: 'paid', amount: 99 },
+    },
     registration_deadline: '',
     organizer: '',
     contact_email: '',
@@ -309,11 +308,13 @@ const AdminDashboard: React.FC = () => {
       category: 'general',
       event_type: 'free',
       price: 0,
-      pricing_type: 'fixed',
-      free_for_years: [1],
-      paid_for_years: [2, 3, 4],
-      base_price: 99.00,
-      year_specific_pricing: {},
+      pricing_type: 'year_based',
+      year_pricing: {
+        1: { type: 'free', amount: 0 },
+        2: { type: 'paid', amount: 99 },
+        3: { type: 'paid', amount: 99 },
+        4: { type: 'paid', amount: 99 },
+      },
       registration_deadline: '',
       organizer: '',
       contact_email: '',
@@ -331,6 +332,31 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleEditEvent = (event: Event) => {
+    // Convert DB fields to form state
+    const year_pricing: { [year: number]: { type: 'free' | 'paid', amount: number } } = {};
+    
+    // Initialize all years as free by default
+    [1, 2, 3, 4].forEach(year => {
+      year_pricing[year] = { type: 'free', amount: 0 };
+    });
+    
+    // Set free years
+    if (event.free_for_years) {
+      event.free_for_years.forEach(year => {
+        year_pricing[year] = { type: 'free', amount: 0 };
+      });
+    }
+    
+    // Set paid years
+    if (event.paid_for_years) {
+      event.paid_for_years.forEach(year => {
+        year_pricing[year] = { 
+          type: 'paid', 
+          amount: event.year_specific_pricing?.[year] || event.base_price || 99 
+        };
+      });
+    }
+
     setEventForm({
       name: event.name,
       description: event.description || '',
@@ -340,11 +366,8 @@ const AdminDashboard: React.FC = () => {
       category: event.category || 'general',
       event_type: event.event_type || 'free',
       price: event.price || 0,
-      pricing_type: event.pricing_type || 'fixed',
-      free_for_years: event.free_for_years || [1],
-      paid_for_years: event.paid_for_years || [2, 3, 4],
-      base_price: event.base_price || 99.00,
-      year_specific_pricing: event.year_specific_pricing || {},
+      pricing_type: 'year_based', // This will be overridden by the new UI
+      year_pricing,
       registration_deadline: event.registration_deadline ? new Date(event.registration_deadline).toISOString().slice(0, 16) : '',
       organizer: event.organizer || '',
       contact_email: event.contact_email || '',
@@ -362,6 +385,17 @@ const AdminDashboard: React.FC = () => {
       alert('Please fill in all required fields (Name, Date, Location)');
       return;
     }
+    // Convert year_pricing to DB fields
+    const free_for_years = Object.keys(eventForm.year_pricing)
+      .map(Number)
+      .filter(year => eventForm.year_pricing[year].type === 'free');
+    const paid_for_years = Object.keys(eventForm.year_pricing)
+      .map(Number)
+      .filter(year => eventForm.year_pricing[year].type === 'paid');
+    const year_specific_pricing: { [key: number]: number } = {};
+    paid_for_years.forEach(year => {
+      year_specific_pricing[year] = eventForm.year_pricing[year].amount;
+    });
 
     try {
       const eventData = {
@@ -373,11 +407,11 @@ const AdminDashboard: React.FC = () => {
         category: eventForm.category,
         event_type: eventForm.event_type,
         price: eventForm.price,
-        pricing_type: eventForm.pricing_type,
-        free_for_years: eventForm.free_for_years,
-        paid_for_years: eventForm.paid_for_years,
-        base_price: eventForm.base_price,
-        year_specific_pricing: eventForm.year_specific_pricing,
+        pricing_type: 'year_based', // This will be overridden by the new UI
+        free_for_years,
+        paid_for_years,
+        base_price: eventForm.price,
+        year_specific_pricing,
         registration_deadline: eventForm.registration_deadline || null,
         organizer: eventForm.organizer,
         contact_email: eventForm.contact_email,
@@ -1094,99 +1128,63 @@ const AdminDashboard: React.FC = () => {
               {eventForm.event_type === 'paid' && (
                 <VStack w="full" spacing={4} align="stretch">
                   <Divider />
-                  <Text fontSize="lg" fontWeight="bold" color="gray.700">Pricing Configuration</Text>
-                  
-                  <HStack w="full" spacing={4}>
-                    <Box flex="1">
-                      <Text mb={2} fontWeight="medium">Pricing Type</Text>
-                      <Select
-                        value={eventForm.pricing_type}
-                        onChange={(e) => setEventForm({ ...eventForm, pricing_type: e.target.value })}
-                      >
-                        <option value="fixed">Fixed Price (Same for all years)</option>
-                        <option value="year_based">Year-Based Pricing</option>
-                      </Select>
-                    </Box>
-                    <Box flex="1">
-                      <Text mb={2} fontWeight="medium">Base Price (₹)</Text>
-                      <Input
-                        type="number"
-                        placeholder="99"
-                        value={eventForm.base_price}
-                        onChange={(e) => setEventForm({ ...eventForm, base_price: parseFloat(e.target.value) || 0 })}
-                      />
-                    </Box>
-                  </HStack>
-
-                  <HStack w="full" spacing={4}>
-                    <Box flex="1">
-                      <Text mb={2} fontWeight="medium">Free for Years</Text>
-                      <VStack spacing={2} align="stretch">
-                        {[1, 2, 3, 4].map(year => (
-                          <HStack key={year} spacing={2}>
-                            <input
-                              type="checkbox"
-                              checked={eventForm.free_for_years.includes(year)}
-                              onChange={(e) => {
-                                const newFreeYears = e.target.checked
-                                  ? [...eventForm.free_for_years, year]
-                                  : eventForm.free_for_years.filter(y => y !== year);
-                                setEventForm({ ...eventForm, free_for_years: newFreeYears });
-                              }}
-                            />
-                            <Text>Year {year}</Text>
-                          </HStack>
-                        ))}
-                      </VStack>
-                    </Box>
-                    <Box flex="1">
-                      <Text mb={2} fontWeight="medium">Paid for Years</Text>
-                      <VStack spacing={2} align="stretch">
-                        {[1, 2, 3, 4].map(year => (
-                          <HStack key={year} spacing={2}>
-                            <input
-                              type="checkbox"
-                              checked={eventForm.paid_for_years.includes(year)}
-                              onChange={(e) => {
-                                const newPaidYears = e.target.checked
-                                  ? [...eventForm.paid_for_years, year]
-                                  : eventForm.paid_for_years.filter(y => y !== year);
-                                setEventForm({ ...eventForm, paid_for_years: newPaidYears });
-                              }}
-                            />
-                            <Text>Year {year}</Text>
-                          </HStack>
-                        ))}
-                      </VStack>
-                    </Box>
-                  </HStack>
-
-                  {eventForm.pricing_type === 'year_based' && (
-                    <Box>
-                      <Text mb={2} fontWeight="medium">Year-Specific Pricing (₹)</Text>
-                      <HStack spacing={4}>
-                        {eventForm.paid_for_years.map(year => (
-                          <Box key={year}>
-                            <Text fontSize="sm" mb={1}>Year {year}</Text>
-                            <Input
-                              type="number"
-                              placeholder="99"
-                              size="sm"
-                              width="80px"
-                              value={eventForm.year_specific_pricing[year] || ''}
-                              onChange={(e) => {
-                                const newPricing = {
-                                  ...eventForm.year_specific_pricing,
-                                  [year]: parseFloat(e.target.value) || 0
-                                };
-                                setEventForm({ ...eventForm, year_specific_pricing: newPricing });
-                              }}
-                            />
-                          </Box>
-                        ))}
+                  <Text fontSize="lg" fontWeight="bold" color="gray.700">Year-wise Pricing</Text>
+                  {[1, 2, 3, 4].map(year => (
+                    <HStack key={year} spacing={4} align="center">
+                      <Text w="100px" fontWeight="medium">{year === 1 ? '1st Year' : year === 2 ? '2nd Year' : year === 3 ? '3rd Year' : 'Final Year'}</Text>
+                      <HStack spacing={2}>
+                        <label>
+                          <input
+                            type="radio"
+                            name={`year_pricing_${year}`}
+                            checked={eventForm.year_pricing[year]?.type === 'free'}
+                            onChange={() => setEventForm({
+                              ...eventForm,
+                              year_pricing: {
+                                ...eventForm.year_pricing,
+                                [year]: { type: 'free', amount: 0 }
+                              }
+                            })}
+                          />{' '}
+                          Free
+                        </label>
+                        <label>
+                          <input
+                            type="radio"
+                            name={`year_pricing_${year}`}
+                            checked={eventForm.year_pricing[year]?.type === 'paid'}
+                            onChange={() => setEventForm({
+                              ...eventForm,
+                              year_pricing: {
+                                ...eventForm.year_pricing,
+                                [year]: { type: 'paid', amount: eventForm.year_pricing[year]?.amount || 99 }
+                              }
+                            })}
+                          />{' '}
+                          Paid
+                        </label>
+                        {eventForm.year_pricing[year]?.type === 'paid' && (
+                          <Input
+                            type="number"
+                            placeholder="Amount"
+                            value={eventForm.year_pricing[year]?.amount || ''}
+                            onChange={e => setEventForm({
+                              ...eventForm,
+                              year_pricing: {
+                                ...eventForm.year_pricing,
+                                [year]: {
+                                  ...eventForm.year_pricing[year],
+                                  amount: parseFloat(e.target.value) || 0
+                                }
+                              }
+                            })}
+                            width="120px"
+                            ml={2}
+                          />
+                        )}
                       </HStack>
-                    </Box>
-                  )}
+                    </HStack>
+                  ))}
                 </VStack>
               )}
               
