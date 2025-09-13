@@ -101,9 +101,9 @@ const AdminDashboard: React.FC = () => {
     pricing_type: 'year_based',
     year_pricing: {
       1: { type: 'free', amount: 0 },
-      2: { type: 'paid', amount: 99 },
-      3: { type: 'paid', amount: 99 },
-      4: { type: 'paid', amount: 99 },
+      2: { type: 'free', amount: 0 },
+      3: { type: 'free', amount: 0 },
+      4: { type: 'free', amount: 0 },
     },
     registration_deadline: '',
     organizer: '',
@@ -311,9 +311,9 @@ const AdminDashboard: React.FC = () => {
       pricing_type: 'year_based',
       year_pricing: {
         1: { type: 'free', amount: 0 },
-        2: { type: 'paid', amount: 99 },
-        3: { type: 'paid', amount: 99 },
-        4: { type: 'paid', amount: 99 },
+        2: { type: 'free', amount: 0 },
+        3: { type: 'free', amount: 0 },
+        4: { type: 'free', amount: 0 },
       },
       registration_deadline: '',
       organizer: '',
@@ -1124,16 +1124,21 @@ const AdminDashboard: React.FC = () => {
                 </Box>
               </HStack>
 
-              {/* New Pricing Options */}
-              {eventForm.event_type === 'paid' && (
-                <VStack w="full" spacing={4} align="stretch">
-                  <Divider />
-                  <Text fontSize="lg" fontWeight="bold" color="gray.700">Year-wise Pricing</Text>
-                  {[1, 2, 3, 4].map(year => (
-                    <HStack key={year} spacing={4} align="center">
-                      <Text w="100px" fontWeight="medium">{year === 1 ? '1st Year' : year === 2 ? '2nd Year' : year === 3 ? '3rd Year' : 'Final Year'}</Text>
-                      <HStack spacing={2}>
-                        <label>
+              {/* Year-wise Pricing Options - Always show for all event types */}
+              <VStack w="full" spacing={4} align="stretch">
+                <Divider />
+                <Text fontSize="lg" fontWeight="bold" color="gray.700">Year-wise Pricing Configuration</Text>
+                <Text fontSize="sm" color="gray.600" mb={2}>
+                  Configure which years get free entry and which years need to pay
+                </Text>
+                {[1, 2, 3, 4].map(year => (
+                  <Box key={year} p={4} border="1px solid" borderColor="gray.200" borderRadius="md">
+                    <HStack spacing={4} align="center">
+                      <Text w="120px" fontWeight="medium" fontSize="md">
+                        {year === 1 ? '1st Year' : year === 2 ? '2nd Year' : year === 3 ? '3rd Year' : 'Final Year'}
+                      </Text>
+                      <HStack spacing={4}>
+                        <HStack spacing={2}>
                           <input
                             type="radio"
                             name={`year_pricing_${year}`}
@@ -1145,10 +1150,10 @@ const AdminDashboard: React.FC = () => {
                                 [year]: { type: 'free', amount: 0 }
                               }
                             })}
-                          />{' '}
-                          Free
-                        </label>
-                        <label>
+                          />
+                          <Text fontSize="sm" fontWeight="medium" color="green.600">Free Entry</Text>
+                        </HStack>
+                        <HStack spacing={2}>
                           <input
                             type="radio"
                             name={`year_pricing_${year}`}
@@ -1160,33 +1165,37 @@ const AdminDashboard: React.FC = () => {
                                 [year]: { type: 'paid', amount: eventForm.year_pricing[year]?.amount || 99 }
                               }
                             })}
-                          />{' '}
-                          Paid
-                        </label>
-                        {eventForm.year_pricing[year]?.type === 'paid' && (
-                          <Input
-                            type="number"
-                            placeholder="Amount"
-                            value={eventForm.year_pricing[year]?.amount || ''}
-                            onChange={e => setEventForm({
-                              ...eventForm,
-                              year_pricing: {
-                                ...eventForm.year_pricing,
-                                [year]: {
-                                  ...eventForm.year_pricing[year],
-                                  amount: parseFloat(e.target.value) || 0
-                                }
-                              }
-                            })}
-                            width="120px"
-                            ml={2}
                           />
+                          <Text fontSize="sm" fontWeight="medium" color="blue.600">Paid Entry</Text>
+                        </HStack>
+                        {eventForm.year_pricing[year]?.type === 'paid' && (
+                          <HStack spacing={2}>
+                            <Text fontSize="sm" color="gray.600">Amount:</Text>
+                            <Input
+                              type="number"
+                              placeholder="99"
+                              value={eventForm.year_pricing[year]?.amount || ''}
+                              onChange={e => setEventForm({
+                                ...eventForm,
+                                year_pricing: {
+                                  ...eventForm.year_pricing,
+                                  [year]: {
+                                    ...eventForm.year_pricing[year],
+                                    amount: parseFloat(e.target.value) || 0
+                                  }
+                                }
+                              })}
+                              width="100px"
+                              size="sm"
+                            />
+                            <Text fontSize="sm" color="gray.600">₹</Text>
+                          </HStack>
                         )}
                       </HStack>
                     </HStack>
-                  ))}
-                </VStack>
-              )}
+                  </Box>
+                ))}
+              </VStack>
               
               <HStack w="full" spacing={4}>
                 <Box flex="1">
