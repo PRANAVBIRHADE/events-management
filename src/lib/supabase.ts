@@ -48,6 +48,11 @@ export interface Event {
   category: 'sports' | 'cultural' | 'technical' | 'academic' | 'social' | 'general';
   event_type: 'free' | 'paid' | 'invitation_only';
   price: number;
+  pricing_type?: 'fixed' | 'year_based';
+  free_for_years?: number[];
+  paid_for_years?: number[];
+  base_price?: number;
+  year_specific_pricing?: { [key: number]: number };
   registration_deadline?: string;
   image_url?: string;
   organizer?: string;
