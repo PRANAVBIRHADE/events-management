@@ -164,15 +164,15 @@ const QRScanner: React.FC<QRScannerProps> = ({ isOpen, onClose }) => {
           mobile_number: registration.mobile_number,
           studying_year: registration.studying_year,
           registration_type: registration.registration_type,
-          event_name: registration.events.name,
-          event_date: registration.events.event_date,
+          event_name: Array.isArray(registration.events) && registration.events.length > 0 ? registration.events[0].name : '',
+          event_date: Array.isArray(registration.events) && registration.events.length > 0 ? registration.events[0].event_date : '',
           payment_status: isFresher ? 'free' : registration.payment_status,
           amount_paid: isFresher ? 0 : registration.amount_paid,
         });
 
         toast({
           title: 'Registration Verified!',
-          description: `${registration.full_name} is registered for ${registration.events.name}`,
+          description: `${registration.full_name} is registered for ${Array.isArray(registration.events) && registration.events.length > 0 ? registration.events[0].name : ''}`,
           status: 'success',
           duration: 5000,
           isClosable: true,
