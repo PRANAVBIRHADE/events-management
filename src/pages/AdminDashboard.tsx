@@ -536,6 +536,27 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Add this function inside AdminDashboard component
+  const handleDeleteUser = async (user: UserProfile) => {
+    if (!window.confirm(`Are you sure you want to delete the account for ${user.full_name} (${user.email})? This cannot be undone.`)) return;
+    try {
+      const res = await fetch('https://feewkjawsvuxuvymqslw.functions.supabase.co/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.user_id }),
+      });
+      if (!res.ok) {
+        const error = await res.text();
+        alert('Failed to delete user: ' + error);
+        return;
+      }
+      setUsers(prev => prev.filter(u => u.id !== user.id));
+      alert('User deleted successfully.');
+    } catch (err) {
+      alert('Error deleting user: ' + (err instanceof Error ? err.message : err));
+    }
+  };
+
   if (isLoading) {
     return (
       <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center">
@@ -954,12 +975,13 @@ const AdminDashboard: React.FC = () => {
                         <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Studying Year</th>
                         <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Mobile Number</th>
                         <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Created At</th>
+                        <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.length === 0 ? (
                         <tr>
-                          <td colSpan={5} style={{ textAlign: 'center', padding: '16px' }}>
+                          <td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>
                             <Text color="gray.500">No users found.</Text>
                           </td>
                         </tr>
@@ -971,6 +993,11 @@ const AdminDashboard: React.FC = () => {
                             <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.studying_year}</td>
                             <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.mobile_number || '-'}</td>
                             <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{new Date(user.created_at).toLocaleString()}</td>
+                            <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>
+                              <Button size="sm" colorScheme="red" leftIcon={<Icon as={FaTrash} />} onClick={() => handleDeleteUser(user)}>
+                                Delete Account
+                              </Button>
+                            </td>
                           </tr>
                         ))
                       )}
