@@ -21,6 +21,7 @@ import {
   Center,
   Divider,
   Progress,
+  Flex,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';

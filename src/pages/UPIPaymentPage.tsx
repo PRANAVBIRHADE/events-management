@@ -33,6 +33,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
+  Flex,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -54,6 +55,7 @@ import {
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import QRCode from '../components/QRCode';
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
