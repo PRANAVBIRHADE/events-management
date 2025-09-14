@@ -587,25 +587,29 @@ const AdminDashboard: React.FC = () => {
 
   // Add this function inside AdminDashboard component
   const handleDeleteUser = async (user: UserProfile) => {
-    if (!window.confirm(`Are you sure you want to delete the account for ${user.full_name} (${user.email})? This cannot be undone.`)) return;
+    if (!window.confirm(`Are you sure you want to COMPLETELY DELETE the account for ${user.full_name} (${user.email})? This will remove them from auth.users and they will NOT be able to log in anymore. This cannot be undone.`)) return;
     try {
-      // Call the SQL function to delete user profile
-      const { data, error } = await supabase.rpc('delete_user_account', {
-        user_id_to_delete: user.user_id
+      // Call the Edge Function to completely delete user from auth.users
+      const res = await fetch('https://feewkjawsvuxuvymqslw.functions.supabase.co/delete-user-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.user_id }),
       });
 
-      if (error) {
-        console.error('Error deleting user:', error);
-        alert('Failed to delete user: ' + error.message);
+      if (!res.ok) {
+        const error = await res.text();
+        console.error('Failed to delete user:', error);
+        alert('Failed to delete user: ' + error);
         return;
       }
 
-      if (data && data.success) {
+      const result = await res.json();
+      if (result.success) {
         // Update UI immediately
         setUsers(prev => prev.filter(u => u.id !== user.id));
-        alert('User account deleted successfully!');
+        alert('User account COMPLETELY deleted! They can no longer log in.');
       } else {
-        alert('Failed to delete user: ' + (data?.error || 'Unknown error'));
+        alert('Failed to delete user: ' + (result.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Error deleting user:', err);
