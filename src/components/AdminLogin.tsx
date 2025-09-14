@@ -45,27 +45,23 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
 
       if (error) throw error;
 
-      // Check if user is admin after successful login
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('is_admin')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      // Check if user exists in admin_users table
+      const { data: adminUser, error: adminError } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', email)
+        .eq('is_active', true)
         .single();
 
-      if (profileError || !profile) {
-        setError('Error checking admin status');
-        return;
-      }
-
-      if (!profile.is_admin) {
-        setError('Access denied. Only authorized administrators can access this dashboard.');
+      if (adminError || !adminUser) {
+        setError('Access denied. You are not an authorized administrator.');
         await supabase.auth.signOut(); // Sign out non-admin users
         return;
       }
 
-      // Double check it's the specific admin email
-      if (email !== 'pranav0@gmail.com') {
-        setError('Access denied. Invalid admin credentials.');
+      // Verify password (if stored in admin_users table)
+      if (adminUser.password && adminUser.password !== password) {
+        setError('Invalid admin credentials.');
         await supabase.auth.signOut();
         return;
       }
