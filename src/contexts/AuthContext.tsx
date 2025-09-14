@@ -184,29 +184,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Clear stored data
       localStorage.removeItem('registrationData');
+      console.log('Cleared localStorage');
       
       // Sign out from Supabase
+      console.log('Calling supabase.auth.signOut()...');
       const { error } = await supabase.auth.signOut();
+      console.log('Supabase signout response:', { error });
       
       if (error) {
-        console.error('Supabase signout error:', error);
+        console.error('Supabase signout error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
       
       // Reset state
+      console.log('Resetting user state...');
       setUser(null);
       setLastActivity(Date.now());
       
       console.log('User signed out successfully');
       
       // Navigate to home page instead of reload
+      console.log('Navigating to home page...');
       window.location.href = '/';
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Error during logout - full error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error?.message);
+      
       // Force clear user state even if signout fails
+      console.log('Force clearing user state...');
       setUser(null);
       setLastActivity(Date.now());
+      
       // Navigate to home page
+      console.log('Force navigating to home page...');
       window.location.href = '/';
     }
   };

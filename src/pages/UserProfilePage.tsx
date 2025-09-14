@@ -103,16 +103,29 @@ const UserProfilePage: React.FC = () => {
     if (!user) return;
     try {
       console.log('Fetching profile for user:', user.id);
+      console.log('Making Supabase request for profile...');
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      console.log('Profile fetch result:', { data, error });
+      console.log('Profile fetch result:', { 
+        hasData: !!data, 
+        data: data,
+        hasError: !!error,
+        error: error 
+      });
       
       if (error) {
-        console.log('Profile fetch error:', error);
+        console.log('Profile fetch error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
         if (error.code === 'PGRST116') {
           console.log('No profile found, creating new profile...');
           await createProfile();
@@ -129,7 +142,10 @@ const UserProfilePage: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching profile - full error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error?.message);
+      
       toast({
         title: 'Error loading profile',
         description: 'Failed to load your profile information: ' + (error instanceof Error ? error.message : 'Unknown error'),
@@ -138,6 +154,7 @@ const UserProfilePage: React.FC = () => {
         isClosable: true,
       });
     } finally {
+      console.log('Setting profile loading to false');
       setIsLoading(false);
     }
   };

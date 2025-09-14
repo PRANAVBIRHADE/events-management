@@ -90,25 +90,39 @@ const EventsPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
+      console.log('Making Supabase request...');
       const { data, error } = await supabase
         .from('events')
         .select('*')
         .eq('is_active', true)
         .order('event_date', { ascending: true });
 
-      console.log('Events fetch result:', { data, error });
+      console.log('Supabase response received:', { 
+        hasData: !!data, 
+        dataLength: data?.length, 
+        hasError: !!error,
+        error: error 
+      });
 
       if (error) {
-        console.error('Events fetch error:', error);
+        console.error('Events fetch error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
       console.log('Events loaded successfully:', data?.length || 0, 'events');
       setEvents(data || []);
     } catch (error: any) {
-      console.error('Error fetching events:', error);
-      setError(error.message || 'Failed to load events');
+      console.error('Error fetching events - full error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error?.message);
+      setError(error?.message || 'Failed to load events');
     } finally {
+      console.log('Setting loading to false');
       setIsLoading(false);
     }
   };
