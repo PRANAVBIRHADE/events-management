@@ -58,8 +58,15 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
       }
 
       if (!profile.is_admin) {
-        setError('Access denied. You are not an admin user.');
+        setError('Access denied. Only authorized administrators can access this dashboard.');
         await supabase.auth.signOut(); // Sign out non-admin users
+        return;
+      }
+
+      // Double check it's the specific admin email
+      if (email !== 'pranav0@gmail.com') {
+        setError('Access denied. Invalid admin credentials.');
+        await supabase.auth.signOut();
         return;
       }
 

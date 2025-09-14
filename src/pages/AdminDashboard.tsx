@@ -155,8 +155,8 @@ const AdminDashboard: React.FC = () => {
           return;
         }
         
-        if (!profile.is_admin) {
-          console.log('User is not admin, access denied');
+        if (!profile.is_admin || session.user.email !== 'pranav0@gmail.com') {
+          console.log('User is not authorized admin, access denied');
           setIsAuthenticated(false);
           return;
         }
