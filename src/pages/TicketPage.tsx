@@ -35,6 +35,7 @@ import {
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Registration, Event } from '../lib/supabase';
+import QRCode from '../components/QRCode';
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
@@ -432,14 +433,17 @@ const TicketPage: React.FC = () => {
                   w="200px"
                   h="200px"
                 >
-                  <Text fontSize="sm" color="gray.500" textAlign="center">
-                    QR Code<br />
-                    {registrationData.qr_code || registrationData.id}
-                  </Text>
+                  <QRCode 
+                    value={`REG:${registrationData.id}:${registrationData.email}:${eventData?.id || 'unknown'}`}
+                    size={180}
+                  />
                 </Box>
                 
                 <Text fontSize="sm" color="gray.500" textAlign="center">
                   Scan this QR code at the entrance
+                </Text>
+                <Text fontSize="xs" color="gray.400" textAlign="center">
+                  Registration ID: {registrationData.id}
                 </Text>
               </VStack>
 

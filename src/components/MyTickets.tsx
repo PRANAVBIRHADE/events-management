@@ -13,6 +13,14 @@ import {
   SimpleGrid,
   Alert,
   AlertIcon,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  Box,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import {
@@ -24,6 +32,7 @@ import {
   FaDownload,
   FaTicketAlt,
 } from 'react-icons/fa';
+import QRCode from './QRCode';
 
 const MotionCard = motion(Card);
 
@@ -35,6 +44,14 @@ interface MyTicketsProps {
 }
 
 const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, navigate }) => {
+  const { isOpen: isQROpen, onOpen: onQROpen, onClose: onQROpen } = useDisclosure();
+  const [selectedRegistration, setSelectedRegistration] = React.useState<any>(null);
+
+  const showQRCode = (registration: any) => {
+    setSelectedRegistration(registration);
+    onQROpen();
+  };
+
   return (
     <VStack spacing={6} align="stretch">
       <Heading size="lg" color="gray.800">
@@ -122,7 +139,7 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
                         size="sm"
                         variant="outline"
                         leftIcon={<Icon as={FaQrcode} />}
-                        onClick={() => {/* Show QR code */}}
+                        onClick={() => showQRCode(registration)}
                       >
                         View QR
                       </Button>
@@ -154,6 +171,54 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
           ))}
         </SimpleGrid>
       )}
+
+      {/* QR Code Modal */}
+      <Modal isOpen={isQROpen} onClose={onQROpen} size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>
+            <HStack spacing={3}>
+              <Icon as={FaQrcode} color="blue.500" />
+              <Text>Your Ticket QR Code</Text>
+            </HStack>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {selectedRegistration && (
+              <VStack spacing={6} align="center">
+                <Text fontSize="sm" color="gray.600" textAlign="center">
+                  Show this QR code at the event entrance
+                </Text>
+                
+                <Box
+                  p={4}
+                  border="2px solid"
+                  borderColor="gray.200"
+                  borderRadius="lg"
+                  bg="white"
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <QRCode 
+                    value={`REG:${selectedRegistration.id}:${selectedRegistration.email}:${selectedRegistration.event?.id || 'unknown'}`}
+                    size={200}
+                  />
+                </Box>
+                
+                <VStack spacing={2} align="center">
+                  <Text fontSize="sm" color="gray.500">
+                    Registration ID: {selectedRegistration.id}
+                  </Text>
+                  <Text fontSize="sm" color="gray.500">
+                    Event: {selectedRegistration.event?.name || 'Event'}
+                  </Text>
+                </VStack>
+              </VStack>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </VStack>
   );
 };

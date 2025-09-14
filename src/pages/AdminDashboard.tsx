@@ -52,6 +52,7 @@ import {
 } from 'react-icons/fa';
 import { supabase, AllRegistration, Event, UserProfile } from '../lib/supabase';
 import AdminLogin from '../components/AdminLogin';
+import QRScanner from '../components/QRScanner';
 
 const MotionBox = motion(Box);
 
@@ -1384,24 +1385,7 @@ const AdminDashboard: React.FC = () => {
       </Modal>
 
       {/* QR Scanner Modal */}
-      <Modal isOpen={isQRScannerOpen} onClose={onQRScannerClose} size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>QR Code Scanner</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <Box p={8} textAlign="center">
-              <Icon as={FaQrcode} boxSize={16} color="gray.400" mb={4} />
-              <Text color="gray.600" mb={4}>
-                QR Scanner functionality would be implemented here using a camera library.
-              </Text>
-              <Text fontSize="sm" color="gray.500">
-                This would scan QR codes from tickets to verify and check in attendees.
-              </Text>
-            </Box>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      <QRScanner isOpen={isQRScannerOpen} onClose={onQRScannerClose} />
     </Box>
   );
 };
