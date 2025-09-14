@@ -720,8 +720,9 @@ const AdminDashboard: React.FC = () => {
             <Tab>Users</Tab>
           </TabList>
           <TabPanels>
-            {/* Registrations TabPanel */}
-            <TabPanel p={0} mt={6}>
+            {/* REGISTRATIONS TAB */}
+            <TabPanel>
+              <Heading size="lg" color="blue.600" mb={4}>Registrations Tab</Heading>
               <Box bg="white" borderRadius="lg" shadow="md" overflow="hidden">
                 <Box p={4} borderBottom="1px solid" borderColor="gray.200" bg="gray.50">
                   <Flex justify="space-between" align="center">
@@ -820,9 +821,9 @@ const AdminDashboard: React.FC = () => {
                 </Box>
               </Box>
             </TabPanel>
-
-            {/* Events Tab */}
-            <TabPanel p={0} mt={6}>
+            {/* EVENTS TAB */}
+            <TabPanel>
+              <Heading size="lg" color="blue.600" mb={4}>Events Tab</Heading>
               <Box bg="white" borderRadius="lg" shadow="md" overflow="hidden">
                 {events.length === 0 ? (
                   <Box p={8} textAlign="center">
@@ -939,193 +940,9 @@ const AdminDashboard: React.FC = () => {
                 )}
               </Box>
             </TabPanel>
-
-            {/* Paid Seniors Tab */}
-            <TabPanel p={0} mt={6}>
-              <Box bg="white" borderRadius="lg" shadow="md" overflow="hidden">
-                <Box p={4} borderBottom="1px solid" borderColor="gray.200" bg="gray.50">
-                  <Flex justify="space-between" align="center">
-                    <Text fontWeight="medium" color="gray.700">
-                      Paid Seniors ({seniorRegistrations.length} registrations)
-                    </Text>
-                    <Button
-                      size="sm"
-                      colorScheme="purple"
-                      variant="outline"
-                      onClick={() => handleExportCSV('seniors')}
-                      leftIcon={<Icon as={FaDownload} />}
-                    >
-                      Export Seniors CSV
-                    </Button>
-                  </Flex>
-                </Box>
-                <Box overflowX="auto">
-                  <Box as="table" w="full">
-                    <Box as="thead" bg="gray.50">
-                      <Box as="tr">
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Name</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Email</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Mobile</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Year</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Status</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Actions</Box>
-                      </Box>
-                    </Box>
-                    <Box as="tbody">
-                      {seniorRegistrations.map((registration) => (
-                        <Box as="tr" key={registration.id} borderBottom="1px solid" borderColor="gray.100" _hover={{ bg: "gray.50" }}>
-                          <Box as="td" p={4}>
-                            <Text fontWeight="medium">{registration.full_name}</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <Text fontSize="sm" color="gray.600">{registration.email}</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <Text fontSize="sm">{registration.mobile_number}</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <Text fontSize="sm">{registration.studying_year} Year</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <HStack gap={2}>
-                              <Badge colorScheme={registration.payment_status === 'paid' ? 'green' : 'yellow'}>
-                                {registration.payment_status}
-                              </Badge>
-                              {registration.is_checked_in && (
-                                <Badge colorScheme="blue">Checked In</Badge>
-                              )}
-                            </HStack>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <HStack gap={2}>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openDetails(registration)}
-                                leftIcon={<Icon as={FaEye} />}
-                              >
-                                View
-                              </Button>
-                              {!registration.is_checked_in && (
-                                <Button
-                                  size="sm"
-                                  colorScheme="green"
-                                  onClick={() => handleCheckIn(registration)}
-                                  leftIcon={<Icon as={FaCheckCircle} />}
-                                >
-                                  Check In
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                colorScheme="red"
-                                variant="outline"
-                                onClick={() => handleDeleteRegistration(registration)}
-                                leftIcon={<Icon as={FaTrash} />}
-                              >
-                                Delete
-                              </Button>
-                            </HStack>
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </TabPanel>
-
-            {/* Freshers Tab */}
-            <TabPanel p={0} mt={6}>
-              <Box bg="white" borderRadius="lg" shadow="md" overflow="hidden">
-                <Box p={4} borderBottom="1px solid" borderColor="gray.200" bg="gray.50">
-                  <Flex justify="space-between" align="center">
-                    <Text fontWeight="medium" color="gray.700">
-                      Freshers ({fresherRegistrations.length} registrations)
-                    </Text>
-                    <Button
-                      size="sm"
-                      colorScheme="green"
-                      variant="outline"
-                      onClick={() => handleExportCSV('freshers')}
-                      leftIcon={<Icon as={FaDownload} />}
-                    >
-                      Export Freshers CSV
-                    </Button>
-                  </Flex>
-                </Box>
-                <Box overflowX="auto">
-                  <Box as="table" w="full">
-                    <Box as="thead" bg="gray.50">
-                      <Box as="tr">
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Name</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Email</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Mobile</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Status</Box>
-                        <Box as="th" p={4} textAlign="left" fontWeight="bold" color="gray.700">Actions</Box>
-                      </Box>
-                    </Box>
-                    <Box as="tbody">
-                      {fresherRegistrations.map((registration) => (
-                        <Box as="tr" key={registration.id} borderBottom="1px solid" borderColor="gray.100" _hover={{ bg: "gray.50" }}>
-                          <Box as="td" p={4}>
-                            <Text fontWeight="medium">{registration.full_name}</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <Text fontSize="sm" color="gray.600">{registration.email}</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <Text fontSize="sm">{registration.mobile_number}</Text>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <HStack gap={2}>
-                              <Badge colorScheme="green">Free Entry</Badge>
-                              {registration.is_checked_in && (
-                                <Badge colorScheme="blue">Checked In</Badge>
-                              )}
-                            </HStack>
-                          </Box>
-                          <Box as="td" p={4}>
-                            <HStack gap={2}>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openDetails(registration)}
-                                leftIcon={<Icon as={FaEye} />}
-                              >
-                                View
-                              </Button>
-                              {!registration.is_checked_in && (
-                                <Button
-                                  size="sm"
-                                  colorScheme="green"
-                                  onClick={() => handleCheckIn(registration)}
-                                  leftIcon={<Icon as={FaCheckCircle} />}
-                                >
-                                  Check In
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                colorScheme="red"
-                                variant="outline"
-                                onClick={() => handleDeleteRegistration(registration)}
-                                leftIcon={<Icon as={FaTrash} />}
-                              >
-                                Delete
-                              </Button>
-                            </HStack>
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </TabPanel>
-
             {/* USERS TAB: Only user_profiles data, no registrations */}
             <TabPanel>
+              <Heading size="lg" color="blue.600" mb={4}>Users Tab</Heading>
               <Box bg="white" p={6} borderRadius="lg" shadow="md">
                 <Heading size="md" mb={4}>All Registered Users</Heading>
                 <Box overflowX="auto">
