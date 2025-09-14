@@ -45,6 +45,24 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
 
       if (error) throw error;
 
+      // Check if user is admin after successful login
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('is_admin')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (profileError || !profile) {
+        setError('Error checking admin status');
+        return;
+      }
+
+      if (!profile.is_admin) {
+        setError('Access denied. You are not an admin user.');
+        await supabase.auth.signOut(); // Sign out non-admin users
+        return;
+      }
+
       setSuccess('Login successful! Welcome to the admin dashboard');
       onLoginSuccess();
     } catch (error: any) {

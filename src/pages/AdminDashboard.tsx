@@ -140,9 +140,35 @@ const AdminDashboard: React.FC = () => {
   const checkAuth = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
+      
+      if (session?.user) {
+        // Check if user is admin
+        const { data: profile, error } = await supabase
+          .from('user_profiles')
+          .select('is_admin')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (error || !profile) {
+          console.error('Error checking admin status:', error);
+          setIsAuthenticated(false);
+          return;
+        }
+        
+        if (!profile.is_admin) {
+          console.log('User is not admin, access denied');
+          setIsAuthenticated(false);
+          return;
+        }
+        
+        console.log('Admin access granted');
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
     } catch (error) {
       console.error('Auth check error:', error);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
