@@ -20,7 +20,7 @@ const QRCode: React.FC<QRCodeProps> = ({ value, size = 200, className }) => {
           light: '#FFFFFF'
         },
         errorCorrectionLevel: 'M'
-      }).catch((error) => {
+      }).catch((error: any) => {
         console.error('Error generating QR code:', error);
       });
     }
