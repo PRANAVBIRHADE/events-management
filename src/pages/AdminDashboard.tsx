@@ -147,7 +147,7 @@ const AdminDashboard: React.FC = () => {
           .from('admin_users')
           .select('*')
           .eq('email', session.user.email)
-          .eq('is_active', true)
+          .eq('role', 'admin')
           .single();
         
         if (error || !adminUser) {

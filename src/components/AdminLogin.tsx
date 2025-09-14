@@ -50,19 +50,12 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         .from('admin_users')
         .select('*')
         .eq('email', email)
-        .eq('is_active', true)
+        .eq('role', 'admin')
         .single();
 
       if (adminError || !adminUser) {
         setError('Access denied. You are not an authorized administrator.');
         await supabase.auth.signOut(); // Sign out non-admin users
-        return;
-      }
-
-      // Verify password (if stored in admin_users table)
-      if (adminUser.password && adminUser.password !== password) {
-        setError('Invalid admin credentials.');
-        await supabase.auth.signOut();
         return;
       }
 
