@@ -148,12 +148,18 @@ const AdminDashboard: React.FC = () => {
 
   const fetchRegistrations = async () => {
     try {
+      console.log('Fetching registrations from all_registrations view...');
       const { data, error } = await supabase
         .from('all_registrations')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching registrations:', error);
+        throw error;
+      }
+      
+      console.log('Fetched registrations:', data?.length || 0, 'records');
       setRegistrations(data || []);
     } catch (error) {
       console.error('Error fetching registrations:', error);
@@ -239,17 +245,60 @@ const AdminDashboard: React.FC = () => {
         ? 'freshers_registrations' 
         : 'senior_ticket_registrations';
 
+      console.log('Deleting registration:', registration.id, 'from table:', tableName);
+      console.log('Registration details:', registration);
+
+      // First, let's verify the registration exists in the table
+      const { data: existingData, error: fetchError } = await supabase
+        .from(tableName)
+        .select('id')
+        .eq('id', registration.id);
+
+      if (fetchError) {
+        console.error('Error fetching registration:', fetchError);
+        alert(`Error fetching registration: ${fetchError.message}`);
+        return;
+      }
+
+      if (!existingData || existingData.length === 0) {
+        console.log('Registration not found in table, removing from UI anyway');
+        setRegistrations(prev => prev.filter(reg => reg.id !== registration.id));
+        setFilteredRegistrations(prev => prev.filter(reg => reg.id !== registration.id));
+        alert('Registration not found in database, removed from UI');
+        return;
+      }
+
+      console.log('Registration found in table, proceeding with deletion');
+
       const { error } = await supabase
         .from(tableName)
         .delete()
         .eq('id', registration.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        alert(`Error deleting registration: ${error.message}`);
+        return;
+      }
+
+      console.log('Registration deleted successfully from database');
       
-      // Update local state
+      // Update local state immediately
       setRegistrations(prev => prev.filter(reg => reg.id !== registration.id));
+      setFilteredRegistrations(prev => prev.filter(reg => reg.id !== registration.id));
+      
+      // Wait a moment then refresh from server
+      setTimeout(async () => {
+        console.log('Refreshing data from server...');
+        await fetchRegistrations();
+        console.log('Data refreshed from server');
+      }, 1000);
+      
+      alert('Registration deleted successfully!');
     } catch (error) {
       console.error('Error deleting registration:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Please try again.';
+      alert(`Error deleting registration: ${errorMessage}`);
     }
   };
 
