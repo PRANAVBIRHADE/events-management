@@ -46,16 +46,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // If user exists, verify they still have a profile (not deleted)
           if (session?.user) {
+            console.log('Checking if user profile exists for:', session.user.email);
             const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
               .select('id')
               .eq('user_id', session.user.id)
               .single();
               
+            console.log('Profile check result:', { profile, profileError });
+            
             if (profileError || !profile) {
               console.log('User profile not found, signing out deleted user');
-              await supabase.auth.signOut();
-              setUser(null);
+              try {
+                await supabase.auth.signOut();
+                setUser(null);
+                console.log('Successfully signed out deleted user');
+              } catch (signOutError) {
+                console.error('Error signing out:', signOutError);
+                // Force clear the user state even if signout fails
+                setUser(null);
+              }
+            } else {
+              console.log('User profile found, keeping user logged in');
             }
           }
         }
@@ -168,6 +180,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      console.log('Attempting to sign out user...');
+      
       // Clear stored data
       localStorage.removeItem('registrationData');
       
@@ -177,8 +191,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Reset state
       setUser(null);
       setLastActivity(Date.now());
+      
+      console.log('User signed out successfully');
+      
+      // Force reload the page to clear any cached state
+      window.location.reload();
     } catch (error) {
       console.error('Error during logout:', error);
+      // Force clear user state even if signout fails
+      setUser(null);
+      window.location.reload();
     }
   };
 
