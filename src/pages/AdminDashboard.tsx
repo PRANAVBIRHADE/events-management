@@ -540,19 +540,26 @@ const AdminDashboard: React.FC = () => {
   const handleDeleteUser = async (user: UserProfile) => {
     if (!window.confirm(`Are you sure you want to delete the account for ${user.full_name} (${user.email})? This cannot be undone.`)) return;
     try {
-      const res = await fetch('https://feewkjawsvuxuvymqslw.functions.supabase.co/delete-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.user_id }),
+      // Call the SQL function to delete user profile
+      const { data, error } = await supabase.rpc('delete_user_account', {
+        user_id_to_delete: user.user_id
       });
-      if (!res.ok) {
-        const error = await res.text();
-        alert('Failed to delete user: ' + error);
+
+      if (error) {
+        console.error('Error deleting user:', error);
+        alert('Failed to delete user: ' + error.message);
         return;
       }
-      setUsers(prev => prev.filter(u => u.id !== user.id));
-      alert('User deleted successfully.');
+
+      if (data && data.success) {
+        // Update UI immediately
+        setUsers(prev => prev.filter(u => u.id !== user.id));
+        alert('User account deleted successfully!');
+      } else {
+        alert('Failed to delete user: ' + (data?.error || 'Unknown error'));
+      }
     } catch (err) {
+      console.error('Error deleting user:', err);
       alert('Error deleting user: ' + (err instanceof Error ? err.message : err));
     }
   };
