@@ -44,7 +44,7 @@ interface MyTicketsProps {
 }
 
 const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, navigate }) => {
-  const { isOpen: isQROpen, onOpen: onQROpen, onClose: onQROpen } = useDisclosure();
+  const { isOpen: isQROpen, onOpen: onQROpen, onClose: onQRClose } = useDisclosure();
   const [selectedRegistration, setSelectedRegistration] = React.useState<any>(null);
 
   const showQRCode = (registration: any) => {
@@ -173,7 +173,7 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
       )}
 
       {/* QR Code Modal */}
-      <Modal isOpen={isQROpen} onClose={onQROpen} size="md">
+      <Modal isOpen={isQROpen} onClose={onQRClose} size="md">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
