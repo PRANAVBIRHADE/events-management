@@ -53,6 +53,7 @@ import {
 import { supabase, AllRegistration, Event, UserProfile } from '../lib/supabase';
 import AdminLogin from '../components/AdminLogin';
 import QRScanner from '../components/QRScanner';
+import PaymentVerification from '../components/PaymentVerification';
 
 const MotionBox = motion(Box);
 
@@ -811,6 +812,7 @@ const AdminDashboard: React.FC = () => {
             <Tab>Registrations</Tab>
             <Tab>Events</Tab>
             <Tab>Users</Tab>
+            <Tab>Payments</Tab>
           </TabList>
           <TabPanels>
             {/* REGISTRATIONS TAB */}
@@ -1077,6 +1079,11 @@ const AdminDashboard: React.FC = () => {
                   </table>
                 </Box>
               </Box>
+            </TabPanel>
+            
+            {/* PAYMENTS TAB */}
+            <TabPanel>
+              <PaymentVerification />
             </TabPanel>
           </TabPanels>
         </Tabs>

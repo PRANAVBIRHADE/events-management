@@ -279,8 +279,14 @@ const EventRegistrationPage: React.FC = () => {
           isClosable: true,
         });
 
-        // Redirect to payment page
-        navigate('/payment');
+        // Redirect to UPI payment page
+        navigate('/upi-payment', {
+          state: {
+            registration: registrationData,
+            event: eventData,
+            amount: calculatedAmount
+          }
+        });
       }
     } catch (error: any) {
       console.error('Registration error:', error);

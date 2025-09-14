@@ -18,6 +18,8 @@ import EmailVerificationPage from './pages/EmailVerificationPage';
 import EventRegistrationPage from './pages/EventRegistrationPage';
 import DebugPage from './pages/DebugPage';
 import MyTicketsPage from './pages/MyTicketsPage';
+import UPIPaymentPage from './pages/UPIPaymentPage';
+import PaymentPendingPage from './pages/PaymentPendingPage';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Custom theme with party vibes
@@ -115,6 +117,8 @@ function App() {
               <Route path="/register/:eventId" element={<EventRegistrationPage />} />
               <Route path="/debug" element={<DebugPage />} />
               <Route path="/my-tickets" element={<MyTicketsPage />} />
+              <Route path="/upi-payment" element={<UPIPaymentPage />} />
+              <Route path="/payment-pending" element={<PaymentPendingPage />} />
             </Routes>
           </MotionDiv>
         </Router>
