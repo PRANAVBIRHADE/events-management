@@ -102,18 +102,25 @@ const UserProfilePage: React.FC = () => {
   const fetchProfile = async () => {
     if (!user) return;
     try {
+      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
+      
+      console.log('Profile fetch result:', { data, error });
+      
       if (error) {
+        console.log('Profile fetch error:', error);
         if (error.code === 'PGRST116') {
+          console.log('No profile found, creating new profile...');
           await createProfile();
         } else {
           throw error;
         }
       } else {
+        console.log('Profile loaded successfully:', data);
         setProfile(data);
         setEditData({
           full_name: data.full_name,
@@ -125,7 +132,7 @@ const UserProfilePage: React.FC = () => {
       console.error('Error fetching profile:', error);
       toast({
         title: 'Error loading profile',
-        description: 'Failed to load your profile information.',
+        description: 'Failed to load your profile information: ' + (error instanceof Error ? error.message : 'Unknown error'),
         status: 'error',
         duration: 5000,
         isClosable: true,

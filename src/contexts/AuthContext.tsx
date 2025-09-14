@@ -186,7 +186,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('registrationData');
       
       // Sign out from Supabase
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Supabase signout error:', error);
+        throw error;
+      }
       
       // Reset state
       setUser(null);
@@ -194,13 +199,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       console.log('User signed out successfully');
       
-      // Force reload the page to clear any cached state
-      window.location.reload();
+      // Navigate to home page instead of reload
+      window.location.href = '/';
     } catch (error) {
       console.error('Error during logout:', error);
       // Force clear user state even if signout fails
       setUser(null);
-      window.location.reload();
+      setLastActivity(Date.now());
+      // Navigate to home page
+      window.location.href = '/';
     }
   };
 

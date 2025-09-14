@@ -86,6 +86,7 @@ const EventsPage: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
+      console.log('Fetching events...');
       setIsLoading(true);
       setError(null);
 
@@ -95,10 +96,14 @@ const EventsPage: React.FC = () => {
         .eq('is_active', true)
         .order('event_date', { ascending: true });
 
+      console.log('Events fetch result:', { data, error });
+
       if (error) {
+        console.error('Events fetch error:', error);
         throw error;
       }
 
+      console.log('Events loaded successfully:', data?.length || 0, 'events');
       setEvents(data || []);
     } catch (error: any) {
       console.error('Error fetching events:', error);
