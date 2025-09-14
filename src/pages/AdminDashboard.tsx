@@ -607,6 +607,17 @@ const AdminDashboard: React.FC = () => {
       if (result.success) {
         // Update UI immediately
         setUsers(prev => prev.filter(u => u.id !== user.id));
+        
+        // If the deleted user is currently logged in, sign them out
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user.id === user.user_id) {
+          console.log('Deleted user is currently logged in, signing them out...');
+          await supabase.auth.signOut();
+          alert('User account COMPLETELY deleted! You have been signed out because this was your account.');
+          window.location.reload();
+          return;
+        }
+        
         alert('User account COMPLETELY deleted! They can no longer log in.');
       } else {
         alert('Failed to delete user: ' + (result.error || 'Unknown error'));

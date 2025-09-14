@@ -43,6 +43,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.error('Error getting session:', error);
         } else {
           setUser(session?.user ?? null);
+          
+          // If user exists, verify they still have a profile (not deleted)
+          if (session?.user) {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .single();
+              
+            if (profileError || !profile) {
+              console.log('User profile not found, signing out deleted user');
+              await supabase.auth.signOut();
+              setUser(null);
+            }
+          }
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -61,6 +76,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (event === 'SIGNED_IN') {
           setLastActivity(Date.now());
+          
+          // Verify user still has a profile (not deleted)
+          if (session?.user) {
+            const { data: profile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .single();
+              
+            if (profileError || !profile) {
+              console.log('User profile not found during sign in, signing out deleted user');
+              await supabase.auth.signOut();
+              setUser(null);
+            }
+          }
         }
       }
     );
