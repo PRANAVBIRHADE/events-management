@@ -31,6 +31,7 @@ import {
   FaQrcode,
   FaDownload,
   FaTicketAlt,
+  FaDollarSign,
 } from 'react-icons/fa';
 import QRCode from './QRCode';
 
@@ -74,14 +75,14 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
               bg={
                 registration.registration_type === 'fresher'
                   ? 'green.50'
-                  : (registration as any).payment_status === 'completed'
+                  : registration.payment_status === 'completed'
                     ? 'green.50'
                     : 'yellow.50'
               }
               borderColor={
                 registration.registration_type === 'fresher'
                   ? 'green.200'
-                  : (registration as any).payment_status === 'completed'
+                  : registration.payment_status === 'completed'
                     ? 'green.200'
                     : 'yellow.200'
               }
@@ -96,7 +97,7 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
                       colorScheme={
                         registration.registration_type === 'fresher'
                           ? 'green'
-                          : (registration as any).payment_status === 'completed'
+                          : registration.payment_status === 'completed'
                             ? 'green'
                             : 'yellow'
                       }
@@ -104,7 +105,7 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
                     >
                       {registration.registration_type === 'fresher'
                         ? 'Confirmed'
-                        : (registration as any).payment_status === 'completed'
+                        : registration.payment_status === 'completed'
                           ? 'Confirmed'
                           : 'Pending Payment'
                       }
@@ -133,7 +134,7 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
                     <Icon as={FaGraduationCap} />
                     <Text>Year {registration.studying_year}</Text>
                   </HStack>
-                  {(registration.registration_type === 'fresher' || (registration as any).payment_status === 'completed') && (
+                  {(registration.registration_type === 'fresher' || registration.payment_status === 'completed') && (
                     <HStack spacing={2}>
                       <Button
                         size="sm"
@@ -153,7 +154,16 @@ const MyTickets: React.FC<MyTicketsProps> = ({ registrations, downloadTicket, na
                       </Button>
                     </HStack>
                   )}
-                  {registration.registration_type === 'senior' && (registration as any).payment_status !== 'completed' && (
+                  {registration.registration_type === 'senior' && registration.payment_status === 'completed' && (
+                    <HStack justify="space-between">
+                      <Text fontWeight="bold" color="gray.600">Amount Paid:</Text>
+                      <HStack spacing={1} color="green.600">
+                        <Icon as={FaDollarSign} />
+                        <Text fontWeight="bold">₹{registration.amount_paid ?? 0}</Text>
+                      </HStack>
+                    </HStack>
+                  )}
+                  {registration.registration_type === 'senior' && registration.payment_status !== 'completed' && (
                     <Button
                       size="sm"
                       colorScheme="green"
