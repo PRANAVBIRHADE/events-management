@@ -554,6 +554,9 @@ const AdminDashboard: React.FC = () => {
   const paidRegistrations = registrations.filter(reg => reg.payment_status === 'paid').length;
   const checkedInRegistrations = registrations.filter(reg => reg.is_checked_in).length;
 
+  // Debug log for Users TabPanel
+  console.log('Users TabPanel users state:', users);
+
   return (
     <Box minH="100vh" bg="gray.50">
       {/* Header */}
@@ -1123,7 +1126,6 @@ const AdminDashboard: React.FC = () => {
 
             {/* USERS TAB: Only user_profiles data, no registrations */}
             <TabPanel>
-              {console.log('Users TabPanel users state:', users)}
               <Box bg="white" p={6} borderRadius="lg" shadow="md">
                 <Heading size="md" mb={4}>All Registered Users</Heading>
                 <Box overflowX="auto">
