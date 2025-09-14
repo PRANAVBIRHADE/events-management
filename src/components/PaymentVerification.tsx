@@ -135,9 +135,9 @@ const PaymentVerification: React.FC = () => {
           studying_year: payment.user_profiles.studying_year,
         },
         event_details: {
-          name: payment.events.name,
-          event_date: payment.events.event_date,
-          location: payment.events.location,
+          name: Array.isArray(payment.events) && payment.events.length > 0 ? payment.events[0].name : '',
+          event_date: Array.isArray(payment.events) && payment.events.length > 0 ? payment.events[0].event_date : '',
+          location: Array.isArray(payment.events) && payment.events.length > 0 ? payment.events[0].location : '',
         }
       }));
 
