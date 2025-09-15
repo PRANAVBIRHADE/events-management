@@ -282,9 +282,9 @@ const EventRegistrationPage: React.FC = () => {
         // Redirect to UPI payment page
         navigate('/upi-payment', {
           state: {
-            registration: registrationData,
-            event: eventData,
-            amount: calculatedAmount
+            registration: data,
+            event: event,
+            amount: registrationPrice
           }
         });
       }
