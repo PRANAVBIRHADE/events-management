@@ -181,33 +181,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       console.log('Attempting to sign out user...');
-      
-      // Clear stored data
+
+      // Clear stored data early (client-side state)
       localStorage.removeItem('registrationData');
       console.log('Cleared localStorage');
-      
-      // Sign out from Supabase
-      console.log('Calling supabase.auth.signOut()...');
-      const { error } = await supabase.auth.signOut();
-      console.log('Supabase signout response:', { error });
-      
+
+      // Supabase signout with timeout and global scope (revoke across devices)
+      console.log('Calling supabase.auth.signOut({ scope: \"global\" }) with timeout...');
+      const signOutPromise = supabase.auth.signOut({ scope: 'global' } as any);
+      const timeoutPromise = new Promise<{ error: any }>((resolve) => {
+        setTimeout(() => resolve({ error: null }), 5000);
+      });
+      const { error } = await Promise.race([signOutPromise, timeoutPromise]);
+      console.log('Supabase signout response (or timed out):', { error });
+
       if (error) {
-        console.error('Supabase signout error details:', {
-          message: error.message
-        });
-        throw error;
+        console.error('Supabase signout error details:', { message: error.message });
       }
-      
-      // Reset state
+
+      // Reset state regardless of network outcome
       console.log('Resetting user state...');
       setUser(null);
       setLastActivity(Date.now());
-      
-      console.log('User signed out successfully');
-      
-      // Navigate to home page instead of reload
-      console.log('Navigating to home page...');
-      window.location.href = '/';
+
+      console.log('User signed out (client state cleared). Redirecting...');
+      // Hard redirect to ensure session cookies are not lingering in SPA state
+      if (typeof window !== 'undefined') {
+        window.location.replace('/');
+      }
     } catch (error) {
       console.error('Error during logout - full error:', error);
       console.error('Error type:', typeof error);
@@ -218,15 +219,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         console.error('Error message:', String(error));
       }
-      
+
       // Force clear user state even if signout fails
       console.log('Force clearing user state...');
       setUser(null);
       setLastActivity(Date.now());
-      
-      // Navigate to home page
+
+      // Hard redirect fallback
       console.log('Force navigating to home page...');
-      window.location.href = '/';
+      if (typeof window !== 'undefined') {
+        window.location.replace('/');
+      }
     }
   };
 
