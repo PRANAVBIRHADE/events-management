@@ -51,6 +51,7 @@ import {
   FaDollarSign
 } from 'react-icons/fa';
 import { supabase, AllRegistration, Event, UserProfile } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import AdminLogin from '../components/AdminLogin';
 import QRScanner from '../components/QRScanner';
 import PaymentVerification from '../components/PaymentVerification';
@@ -79,6 +80,7 @@ interface EventFormData {
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [registrations, setRegistrations] = useState<AllRegistration[]>([]);
@@ -370,9 +372,20 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAuthenticated(false);
-    navigate('/');
+    try {
+      // Prefer centralized logout to keep behavior consistent across app
+      await logout();
+    } catch (e) {
+      // Fallback to direct Supabase signout
+      try { await supabase.auth.signOut(); } catch {}
+    } finally {
+      setIsAuthenticated(false);
+      // Hard navigation fallback to avoid stuck state
+      try { navigate('/'); } catch {}
+      if (typeof window !== 'undefined') {
+        window.location.replace('/');
+      }
+    }
   };
 
   const openDetails = (registration: AllRegistration) => {
