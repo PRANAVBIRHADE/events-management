@@ -211,7 +211,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error during logout - full error:', error);
       console.error('Error type:', typeof error);
-      console.error('Error message:', error?.message);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      } else if (typeof error === 'object' && error !== null && 'message' in (error as any)) {
+        console.error('Error message:', (error as any).message);
+      } else {
+        console.error('Error message:', String(error));
+      }
       
       // Force clear user state even if signout fails
       console.log('Force clearing user state...');
