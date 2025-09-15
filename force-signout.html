@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Sign Out</title>
+</head>
+<body>
+    <h1>Force Sign Out Deleted User</h1>
+    <p>This page will force sign out any logged-in user and clear all session data.</p>
+    <button onclick="forceSignOut()">Force Sign Out</button>
+    <div id="status"></div>
+
+    <script>
+        async function forceSignOut() {
+            const status = document.getElementById('status');
+            status.innerHTML = 'Signing out...';
+            
+            try {
+                // Clear all localStorage
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Clear all cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                status.innerHTML = 'Cleared local data. Redirecting to home page...';
+                
+                // Redirect to home page
+                window.location.href = '/';
+            } catch (error) {
+                status.innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

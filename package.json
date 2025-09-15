@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@chakra-ui/form-control": "^2.2.0"
+  }
+}
