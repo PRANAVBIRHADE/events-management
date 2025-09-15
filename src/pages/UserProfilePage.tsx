@@ -121,9 +121,7 @@ const UserProfilePage: React.FC = () => {
       if (error) {
         console.log('Profile fetch error details:', {
           message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
+          code: (error as any)?.code
         });
         
         if (error.code === 'PGRST116') {
@@ -144,11 +142,25 @@ const UserProfilePage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching profile - full error:', error);
       console.error('Error type:', typeof error);
-      console.error('Error message:', error?.message);
-      
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      } else if (typeof error === 'object' && error !== null && 'message' in (error as any)) {
+        console.error('Error message:', (error as any).message);
+      } else {
+        console.error('Error message:', String(error));
+      }
+
+      const description = 'Failed to load your profile information: ' + (
+        error instanceof Error
+          ? error.message
+          : (typeof error === 'object' && error !== null && 'message' in (error as any))
+            ? String((error as any).message)
+            : 'Unknown error'
+      );
+
       toast({
         title: 'Error loading profile',
-        description: 'Failed to load your profile information: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        description,
         status: 'error',
         duration: 5000,
         isClosable: true,
