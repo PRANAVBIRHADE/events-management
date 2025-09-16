@@ -86,6 +86,7 @@ const AdminDashboard: React.FC = () => {
   const [registrations, setRegistrations] = useState<AllRegistration[]>([]);
   const [filteredRegistrations, setFilteredRegistrations] = useState<AllRegistration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [rawSearchTerm, setRawSearchTerm] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'fresher' | 'senior'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'pending'>('all');
@@ -93,6 +94,11 @@ const AdminDashboard: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEditingEvent, setIsEditingEvent] = useState(false);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  // Pagination state
+  const [regPage, setRegPage] = useState(1);
+  const [regPageSize] = useState(25);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersPageSize] = useState(25);
   
   // Update eventForm state
   const [eventForm, setEventForm] = useState<EventFormData>({
@@ -137,7 +143,14 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     filterRegistrations();
+    setRegPage(1);
   }, [registrations, searchTerm, filterType, filterStatus]);
+
+  // Debounce search input
+  useEffect(() => {
+    const id = setTimeout(() => setSearchTerm(rawSearchTerm), 350);
+    return () => clearTimeout(id);
+  }, [rawSearchTerm]);
 
   const checkAuth = async () => {
     try {
@@ -839,8 +852,8 @@ const AdminDashboard: React.FC = () => {
               </InputLeftElement>
               <Input
                 placeholder="Search registrations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={rawSearchTerm}
+                onChange={(e) => setRawSearchTerm(e.target.value)}
               />
             </InputGroup>
             <Select
@@ -907,7 +920,9 @@ const AdminDashboard: React.FC = () => {
                       </Box>
                     </Box>
                     <Box as="tbody">
-                      {filteredRegistrations.map((registration) => (
+                      {filteredRegistrations
+                        .slice((regPage - 1) * regPageSize, regPage * regPageSize)
+                        .map((registration) => (
                         <Box as="tr" key={registration.id} borderBottom="1px solid" borderColor="gray.100" _hover={{ bg: "gray.50" }}>
                           <Box as="td" p={4}>
                             <Text fontWeight="medium">{registration.full_name}</Text>
@@ -972,6 +987,16 @@ const AdminDashboard: React.FC = () => {
                     </Box>
                   </Box>
                 </Box>
+                {/* Pagination Controls */}
+                <HStack justify="space-between" p={4}>
+                  <Text color="gray.600" fontSize="sm">
+                    Page {regPage} of {Math.max(1, Math.ceil(filteredRegistrations.length / regPageSize))}
+                  </Text>
+                  <HStack>
+                    <Button size="sm" onClick={() => setRegPage(p => Math.max(1, p - 1))} isDisabled={regPage === 1}>Prev</Button>
+                    <Button size="sm" onClick={() => setRegPage(p => (p * regPageSize >= filteredRegistrations.length ? p : p + 1))} isDisabled={regPage * regPageSize >= filteredRegistrations.length}>Next</Button>
+                  </HStack>
+                </HStack>
               </Box>
             </TabPanel>
             {/* EVENTS TAB */}
@@ -1118,7 +1143,9 @@ const AdminDashboard: React.FC = () => {
                           </td>
                         </tr>
                       ) : (
-                        users.map(user => (
+                        users
+                          .slice((usersPage - 1) * usersPageSize, usersPage * usersPageSize)
+                          .map(user => (
                           <tr key={user.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                             <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.full_name}</td>
                             <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{user.email}</td>
@@ -1136,6 +1163,16 @@ const AdminDashboard: React.FC = () => {
                     </tbody>
                   </table>
                 </Box>
+                {/* Users pagination */}
+                <HStack justifyContent="space-between" p={4}>
+                  <Text color="gray.600" fontSize="sm">
+                    Page {usersPage} of {Math.max(1, Math.ceil(users.length / usersPageSize))}
+                  </Text>
+                  <HStack>
+                    <Button size="sm" onClick={() => setUsersPage(p => Math.max(1, p - 1))} isDisabled={usersPage === 1}>Prev</Button>
+                    <Button size="sm" onClick={() => setUsersPage(p => (p * usersPageSize >= users.length ? p : p + 1))} isDisabled={usersPage * usersPageSize >= users.length}>Next</Button>
+                  </HStack>
+                </HStack>
               </Box>
             </TabPanel>
             
