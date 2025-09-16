@@ -81,7 +81,7 @@ interface EventFormData {
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [registrations, setRegistrations] = useState<AllRegistration[]>([]);
@@ -132,6 +132,8 @@ const AdminDashboard: React.FC = () => {
   const { isOpen: isEventModalOpen, onOpen: onEventModalOpen, onClose: onEventModalClose } = useDisclosure();
 
   useEffect(() => {
+    // Wait for AuthContext to finish resolving session on refresh
+    if (authLoading) return;
     checkAuth();
     const detach = revalidateOnFocus(() => {
       if (isAuthenticated) {
@@ -141,7 +143,7 @@ const AdminDashboard: React.FC = () => {
       }
     });
     return detach;
-  }, []);
+  }, [authLoading]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -187,7 +189,8 @@ const AdminDashboard: React.FC = () => {
         console.log('Admin access granted for:', user.email);
         setIsAuthenticated(true);
       } else {
-        setIsAuthenticated(false);
+        // If AuthContext resolved and there is no user, not authenticated
+        if (!authLoading) setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Auth check error:', error);
