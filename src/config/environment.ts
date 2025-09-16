@@ -26,17 +26,11 @@ interface ProcessEnv {
 
 // Safe environment variable getter
 const getProcessEnv = (): ProcessEnv => {
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      return process.env as ProcessEnv;
-    }
-  } catch (error) {
-    console.warn('Could not access process.env:', error);
-  }
-  
-  // Fallback: try to get from window or return empty object
-  const windowEnv = (window as any).__REACT_APP_ENV__ || {};
-  return windowEnv as ProcessEnv;
+  // CRA injects env at build time; at runtime on the client, process may not exist.
+  const env = (typeof process !== 'undefined' && (process as any).env)
+    ? (process as any).env
+    : {};
+  return env as ProcessEnv;
 };
 
 // Function to safely get environment variables
