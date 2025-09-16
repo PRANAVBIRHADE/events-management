@@ -51,6 +51,7 @@ import {
   FaDollarSign
 } from 'react-icons/fa';
 import { supabase, AllRegistration, Event, UserProfile } from '../lib/supabase';
+import { revalidateOnFocus } from '../lib/cache';
 import { useAuth } from '../contexts/AuthContext';
 import AdminLogin from '../components/AdminLogin';
 import QRScanner from '../components/QRScanner';
@@ -131,6 +132,14 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     checkAuth();
+    const detach = revalidateOnFocus(() => {
+      if (isAuthenticated) {
+        fetchRegistrations();
+        fetchEvents();
+        fetchUsers();
+      }
+    });
+    return detach;
   }, []);
 
   useEffect(() => {
@@ -209,7 +218,7 @@ const AdminDashboard: React.FC = () => {
       console.log('Fetching events...');
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags,is_active,created_at,updated_at')
         .order('event_date', { ascending: true });
 
       if (error) {
@@ -625,7 +634,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select('id,user_id,full_name,email,studying_year,mobile_number,is_verified,created_at,updated_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       setUsers(data || []);
