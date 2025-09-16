@@ -100,7 +100,7 @@ const EventsPage: React.FC = () => {
         async () => {
           const { data, error } = await supabase
             .from('events')
-            .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags')
+            .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags,is_active,created_at,updated_at')
             .eq('is_active', true)
             .order('event_date', { ascending: true });
           if (error) throw error;
