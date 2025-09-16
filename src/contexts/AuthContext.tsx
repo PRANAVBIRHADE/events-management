@@ -110,6 +110,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Revalidate session on window focus and sync logout across tabs
+  useEffect(() => {
+    const handleFocus = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session && user) {
+          setUser(null);
+        }
+      } catch (_e) {}
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      // Custom cross-tab logout signal
+      if (e.key === 'forceLogout' && e.newValue) {
+        setUser(null);
+        if (typeof window !== 'undefined') {
+          window.location.replace('/');
+        }
+      }
+      // If Supabase auth token is cleared/changed in another tab
+      if (e.key && e.key.includes('-auth-token')) {
+        handleFocus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [user]);
+
   // Auto-logout on inactivity
   useEffect(() => {
     if (!user) return;
@@ -186,6 +219,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('registrationData');
       console.log('Cleared localStorage');
 
+      // Clear Supabase auth keys from storage proactively
+      try {
+        Object.keys(localStorage).forEach((k) => {
+          if (k.includes('-auth-token') || k.startsWith('sb-')) {
+            localStorage.removeItem(k);
+          }
+        });
+      } catch (_e) {}
+
       // Supabase signout with timeout and global scope (revoke across devices)
       console.log('Calling supabase.auth.signOut({ scope: \"global\" }) with timeout...');
       const signOutPromise = supabase.auth.signOut({ scope: 'global' } as any);
@@ -203,6 +245,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('Resetting user state...');
       setUser(null);
       setLastActivity(Date.now());
+
+      // Broadcast logout to other tabs
+      try {
+        localStorage.setItem('forceLogout', String(Date.now()));
+        // Clean up the signal shortly after
+        setTimeout(() => localStorage.removeItem('forceLogout'), 1000);
+      } catch (_e) {}
 
       console.log('User signed out (client state cleared). Redirecting...');
       // Hard redirect to ensure session cookies are not lingering in SPA state
