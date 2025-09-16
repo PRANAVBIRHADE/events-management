@@ -101,6 +101,7 @@ const AdminDashboard: React.FC = () => {
   const [usersPage, setUsersPage] = useState(1);
   const [usersPageSize] = useState(25);
   
+  const sessionRetries = React.useRef(0);
   // Update eventForm state
   const [eventForm, setEventForm] = useState<EventFormData>({
     name: '',
@@ -195,6 +196,14 @@ const AdminDashboard: React.FC = () => {
       }
     } catch (error) {
       console.error('Auth check error:', error);
+      // Retry on transient timeout without flipping auth state immediately
+      if (error instanceof Error && error.message.includes('timeout')) {
+        if (sessionRetries.current < 2) {
+          sessionRetries.current += 1;
+          await new Promise(res => setTimeout(res, 600));
+          return checkAuth();
+        }
+      }
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
