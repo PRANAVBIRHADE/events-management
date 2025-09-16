@@ -89,6 +89,7 @@ const UserProfilePage: React.FC = () => {
     studying_year: 1,
   });
   const [registrations, setRegistrations] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -97,6 +98,7 @@ const UserProfilePage: React.FC = () => {
     }
     fetchProfile();
     fetchRegistrations();
+    checkIsAdmin();
   }, [user, navigate]);
 
   const fetchProfile = async () => {
@@ -168,6 +170,22 @@ const UserProfilePage: React.FC = () => {
     } finally {
       console.log('Setting profile loading to false');
       setIsLoading(false);
+    }
+  };
+
+  const checkIsAdmin = async () => {
+    if (!user?.email) return;
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('email', user.email)
+        .eq('role', 'admin')
+        .maybeSingle();
+      if (error) return;
+      setIsAdmin(!!data);
+    } catch (_e) {
+      // ignore
     }
   };
 
@@ -483,6 +501,9 @@ const UserProfilePage: React.FC = () => {
             <CardBody>
               <VStack spacing={4} align="stretch">
                 <Button leftIcon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/my-tickets')} colorScheme="blue" variant="solid" bg="#4ade80" color="white" _hover={{ bg: '#22c55e' }}>View My Tickets</Button>
+                {isAdmin && (
+                  <Button onClick={() => navigate('/admin')} colorScheme="purple" variant="outline" color="white" borderColor="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }}>Go to Admin Dashboard</Button>
+                )}
                 <Button leftIcon={<Icon as={FaSignOutAlt} />} onClick={handleLogout} colorScheme="red" variant="outline" color="white" borderColor="white" _hover={{ bg: 'rgba(255,255,255,0.1)' }}>Sign Out</Button>
               </VStack>
             </CardBody>
