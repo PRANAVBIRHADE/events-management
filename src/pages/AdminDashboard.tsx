@@ -162,7 +162,7 @@ const AdminDashboard: React.FC = () => {
     return () => clearTimeout(id);
   }, [rawSearchTerm]);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<void> => {
     try {
       const getSessionWithTimeout = Promise.race([
         supabase.auth.getSession(),
