@@ -58,6 +58,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import MyTickets from '../components/MyTickets';
+import { fetchWithCache, revalidateOnFocus } from '../lib/cache';
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -99,6 +100,11 @@ const UserProfilePage: React.FC = () => {
     fetchProfile();
     fetchRegistrations();
     checkIsAdmin();
+    const detach = revalidateOnFocus(() => {
+      fetchProfile();
+      fetchRegistrations();
+    });
+    return detach;
   }, [user, navigate]);
 
   const fetchProfile = async () => {
@@ -278,20 +284,36 @@ const UserProfilePage: React.FC = () => {
   const fetchRegistrations = async () => {
     if (!user) return;
     try {
-      // Fetch fresher registrations
-      const { data: fresherData, error: fresherError } = await supabase
-        .from('freshers_registrations')
-        .select(`*, event:events(*)`)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (fresherError) throw fresherError;
-      // Fetch senior registrations
-      const { data: seniorData, error: seniorError } = await supabase
-        .from('senior_ticket_registrations')
-        .select(`*, event:events(*)`)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (seniorError) throw seniorError;
+      // Fetch fresher registrations (cached)
+      const fresherData = await fetchWithCache<any[]>(
+        `freshers_${user.id}`,
+        60000,
+        async () => {
+          const { data, error } = await supabase
+            .from('freshers_registrations')
+            .select('id,user_id,event_id,registration_type,full_name,mobile_number,email,studying_year,qr_code,ticket_number,is_checked_in,created_at, event:events(id,name,event_date)')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          return data || [];
+        }
+      );
+
+      // Fetch senior registrations (cached)
+      const seniorData = await fetchWithCache<any[]>(
+        `seniors_${user.id}`,
+        60000,
+        async () => {
+          const { data, error } = await supabase
+            .from('senior_ticket_registrations')
+            .select('id,user_id,event_id,registration_type,full_name,mobile_number,email,studying_year,amount_paid,payment_status,qr_code,ticket_number,is_checked_in,created_at, event:events(id,name,event_date)')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          return data || [];
+        }
+      );
+
       // Combine both types
       setRegistrations([...(fresherData || []), ...(seniorData || [])]);
     } catch (error) {

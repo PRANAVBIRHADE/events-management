@@ -51,6 +51,7 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Event } from '../lib/supabase';
+import { fetchWithCache, revalidateOnFocus } from '../lib/cache';
 import EventCard from '../components/EventCard';
 
 const MotionBox = motion(Box);
@@ -72,12 +73,14 @@ const EventsPage: React.FC = () => {
 
   useEffect(() => {
     fetchEvents();
+    const detach = revalidateOnFocus(fetchEvents);
     
     // Set initial category from URL params
     const category = searchParams.get('category');
     if (category) {
       setSelectedCategory(category);
     }
+    return detach;
   }, [searchParams]);
 
   useEffect(() => {
@@ -91,28 +94,21 @@ const EventsPage: React.FC = () => {
       setError(null);
 
       console.log('Making Supabase request...');
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_active', true)
-        .order('event_date', { ascending: true });
+      const data = await fetchWithCache<Event[]>(
+        'events_active_list',
+        60000,
+        async () => {
+          const { data, error } = await supabase
+            .from('events')
+            .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags')
+            .eq('is_active', true)
+            .order('event_date', { ascending: true });
+          if (error) throw error;
+          return data || [];
+        }
+      );
 
-      console.log('Supabase response received:', { 
-        hasData: !!data, 
-        dataLength: data?.length, 
-        hasError: !!error,
-        error: error 
-      });
-
-      if (error) {
-        console.error('Events fetch error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        throw error;
-      }
+      console.log('Supabase response received:', { hasData: !!data, dataLength: data?.length });
 
       console.log('Events loaded successfully:', data?.length || 0, 'events');
       setEvents(data || []);
