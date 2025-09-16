@@ -18,9 +18,10 @@ export const invalidateCache = (keyPrefix?: string) => {
     cacheStore.clear();
     return;
   }
-  for (const key of cacheStore.keys()) {
+  // Use Array.from to avoid downlevelIteration issues on Map iterators
+  Array.from(cacheStore.keys()).forEach((key) => {
     if (key.startsWith(keyPrefix)) cacheStore.delete(key);
-  }
+  });
 };
 
 export const revalidateOnFocus = (callback: () => void) => {
