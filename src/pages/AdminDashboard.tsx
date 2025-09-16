@@ -691,10 +691,34 @@ const AdminDashboard: React.FC = () => {
       <Box bg="white" shadow="sm" borderBottom="1px solid" borderColor="gray.200">
         <Container maxW="container.xl" py={4}>
           <Flex justify="space-between" align="center">
-            <Heading size="lg" color="gray.800">
-              Admin Dashboard
-            </Heading>
             <HStack gap={4}>
+              <Heading size="lg" color="gray.800">
+                Admin Dashboard
+              </Heading>
+              <Badge colorScheme="purple" variant="subtle">Admin</Badge>
+            </HStack>
+            <HStack gap={3}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+              >
+                View Site
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/events')}
+              >
+                Events Page
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/user-profile')}
+              >
+                My Profile
+              </Button>
               <Button
                 colorScheme="blue"
                 size="sm"
