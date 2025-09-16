@@ -13,56 +13,29 @@ interface EnvironmentConfig {
   isDevelopment: boolean;
 }
 
-// Type for environment variables
-interface ProcessEnv {
-  NODE_ENV?: string;
-  REACT_APP_SUPABASE_URL?: string;
-  REACT_APP_SUPABASE_ANON_KEY?: string;
-  REACT_APP_PHONEPE_MERCHANT_ID?: string;
-  REACT_APP_PHONEPE_SALT_KEY?: string;
-  REACT_APP_PHONEPE_SALT_INDEX?: string;
-  [key: string]: string | undefined;
-}
-
-// Safe environment variable getter
-const getProcessEnv = (): ProcessEnv => {
-  // CRA injects env at build time; at runtime on the client, process may not exist.
-  const env = (typeof process !== 'undefined' && (process as any).env)
-    ? (process as any).env
-    : {};
-  return env as ProcessEnv;
-};
+// Build-time environment (CRA replaces these at compile time)
+const buildEnv = {
+  NODE_ENV: process.env.NODE_ENV,
+  REACT_APP_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL,
+  REACT_APP_SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY,
+  REACT_APP_PHONEPE_MERCHANT_ID: process.env.REACT_APP_PHONEPE_MERCHANT_ID,
+  REACT_APP_PHONEPE_SALT_KEY: process.env.REACT_APP_PHONEPE_SALT_KEY,
+  REACT_APP_PHONEPE_SALT_INDEX: process.env.REACT_APP_PHONEPE_SALT_INDEX,
+} as const;
 
 // Function to safely get environment variables
 const getEnvironmentConfig = (): EnvironmentConfig => {
-  try {
-    const env = getProcessEnv();
-    
-    return {
-      supabaseUrl: env.REACT_APP_SUPABASE_URL || null,
-      supabaseAnonKey: env.REACT_APP_SUPABASE_ANON_KEY || null,
-      phonepeConfig: {
-        merchantId: env.REACT_APP_PHONEPE_MERCHANT_ID || null,
-        saltKey: env.REACT_APP_PHONEPE_SALT_KEY || null,
-        saltIndex: env.REACT_APP_PHONEPE_SALT_INDEX || null,
-      },
-      isProduction: env.NODE_ENV === 'production',
-      isDevelopment: env.NODE_ENV === 'development' || !env.NODE_ENV,
-    };
-  } catch (error) {
-    console.error('Error accessing environment variables:', error);
-    return {
-      supabaseUrl: null,
-      supabaseAnonKey: null,
-      phonepeConfig: {
-        merchantId: null,
-        saltKey: null,
-        saltIndex: null,
-      },
-      isProduction: false,
-      isDevelopment: true,
-    };
-  }
+  return {
+    supabaseUrl: buildEnv.REACT_APP_SUPABASE_URL || null,
+    supabaseAnonKey: buildEnv.REACT_APP_SUPABASE_ANON_KEY || null,
+    phonepeConfig: {
+      merchantId: buildEnv.REACT_APP_PHONEPE_MERCHANT_ID || null,
+      saltKey: buildEnv.REACT_APP_PHONEPE_SALT_KEY || null,
+      saltIndex: buildEnv.REACT_APP_PHONEPE_SALT_INDEX || null,
+    },
+    isProduction: buildEnv.NODE_ENV === 'production',
+    isDevelopment: buildEnv.NODE_ENV !== 'production',
+  };
 };
 
 // Lazy getter for environment config
@@ -100,7 +73,6 @@ export const debugEnvironment = (): void => {
   const validation = validateEnvironment();
 
   console.log('🔍 Environment Debug:');
-  console.log('- Process available:', typeof process !== 'undefined');
   console.log('- NODE_ENV:', config.isDevelopment ? 'development' : config.isProduction ? 'production' : 'unknown');
   console.log('- Supabase URL:', config.supabaseUrl ? '✅ Set' : '❌ Missing');
   console.log('- Supabase Key:', config.supabaseAnonKey ? '✅ Set' : '❌ Missing');
