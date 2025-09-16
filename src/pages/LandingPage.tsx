@@ -207,6 +207,9 @@ const LandingPage: React.FC = () => {
                     <MenuItem icon={<Icon as={FaTicketAlt} />} onClick={() => navigate('/my-tickets')}>
                       My Tickets
                     </MenuItem>
+                    <MenuItem onClick={() => navigate('/admin-dashboard')}>
+                      Admin Dashboard
+                    </MenuItem>
                     <MenuItem icon={<Icon as={FaSignOutAlt} />} onClick={logout} color="red.500">
                       Sign Out
                     </MenuItem>
@@ -230,6 +233,15 @@ const LandingPage: React.FC = () => {
                     onClick={handleUserLogin}
                   >
                     Login
+                  </Button>
+                  <Button
+                    variant="outline"
+                    color="white"
+                    borderColor="white"
+                    _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                    onClick={() => navigate('/admin-login')}
+                  >
+                    Admin Login
                   </Button>
                 </>
               )}
