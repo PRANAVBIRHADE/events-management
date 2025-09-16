@@ -116,7 +116,7 @@ const PaymentVerification: React.FC = () => {
         .select(`
           *,
           user_profiles!inner(full_name, email, mobile_number, studying_year),
-          events!inner(name, event_date, location)
+          events!payment_verifications_event_id_fkey(name, event_date, location)
         `)
         .order('created_at', { ascending: false });
 
