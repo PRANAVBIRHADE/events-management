@@ -44,27 +44,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           setUser(session?.user ?? null);
           
-          // If user exists, verify they still have a profile (not deleted)
+          // If user exists, verify profile or create one for admins
           if (session?.user) {
             console.log('Checking if user profile exists for:', session.user.email);
             const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
               .select('id')
               .eq('user_id', session.user.id)
-              .single();
-              
-            console.log('Profile check result:', { profile, profileError });
-            
+              .maybeSingle();
+
+            // If profile missing, check admin status
             if (profileError || !profile) {
-              console.log('User profile not found, signing out deleted user');
-              try {
-                await supabase.auth.signOut();
-                setUser(null);
-                console.log('Successfully signed out deleted user');
-              } catch (signOutError) {
-                console.error('Error signing out:', signOutError);
-                // Force clear the user state even if signout fails
-                setUser(null);
+              const { data: adminUser } = await supabase
+                .from('admin_users')
+                .select('id')
+                .eq('email', session.user.email as any)
+                .eq('role', 'admin')
+                .maybeSingle();
+
+              if (adminUser) {
+                console.log('Admin detected without profile. Creating minimal admin profile...');
+                try {
+                  await supabase
+                    .from('user_profiles')
+                    .insert([{ 
+                      user_id: session.user.id,
+                      full_name: (session.user.user_metadata as any)?.full_name || session.user.email?.split('@')[0] || 'Admin',
+                      mobile_number: (session.user.user_metadata as any)?.mobile_number || '',
+                      studying_year: 4
+                    }]);
+                  console.log('Admin profile created');
+                } catch (e) {
+                  console.warn('Failed to auto-create admin profile:', e);
+                }
+              } else {
+                console.log('Non-admin user profile not found, signing out deleted user');
+                try {
+                  await supabase.auth.signOut();
+                  setUser(null);
+                  console.log('Successfully signed out deleted user');
+                } catch (signOutError) {
+                  console.error('Error signing out:', signOutError);
+                  setUser(null);
+                }
               }
             } else {
               console.log('User profile found, keeping user logged in');
@@ -89,18 +111,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (event === 'SIGNED_IN') {
           setLastActivity(Date.now());
           
-          // Verify user still has a profile (not deleted)
+          // Verify user still has a profile (create for admins if missing)
           if (session?.user) {
             const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
               .select('id')
               .eq('user_id', session.user.id)
-              .single();
-              
+              .maybeSingle();
+
             if (profileError || !profile) {
-              console.log('User profile not found during sign in, signing out deleted user');
-              await supabase.auth.signOut();
-              setUser(null);
+              const { data: adminUser } = await supabase
+                .from('admin_users')
+                .select('id')
+                .eq('email', session.user.email as any)
+                .eq('role', 'admin')
+                .maybeSingle();
+
+              if (adminUser) {
+                try {
+                  await supabase
+                    .from('user_profiles')
+                    .insert([{ 
+                      user_id: session.user.id,
+                      full_name: (session.user.user_metadata as any)?.full_name || session.user.email?.split('@')[0] || 'Admin',
+                      mobile_number: (session.user.user_metadata as any)?.mobile_number || '',
+                      studying_year: 4
+                    }]);
+                  console.log('Admin profile created on SIGNED_IN');
+                } catch (e) {
+                  console.warn('Failed to auto-create admin profile on SIGNED_IN:', e);
+                }
+              } else {
+                console.log('User profile not found during sign in, signing out deleted non-admin user');
+                await supabase.auth.signOut();
+                setUser(null);
+              }
             }
           }
         }
