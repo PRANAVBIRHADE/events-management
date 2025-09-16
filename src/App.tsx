@@ -13,6 +13,7 @@ import FresherHypePage from './pages/FresherHypePage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardNew from './pages/AdminDashboardNew';
+import AdminRoute from './components/AdminRoute';
 import UserLoginPage from './pages/UserLoginPage';
 import UserSignupPage from './pages/UserSignupPage';
 import UserProfilePage from './pages/UserProfilePage';
@@ -112,7 +113,7 @@ function App() {
               <Route path="/ticket" element={<TicketPage />} />
               <Route path="/fresher-hype" element={<FresherHypePage />} />
               <Route path="/admin-login" element={<AdminLoginPage />} />
-              <Route path="/admin-dashboard" element={<AdminDashboardNew />} />
+              <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboardNew /></AdminRoute>} />
               <Route path="/user-login" element={<UserLoginPage />} />
               <Route path="/user-signup" element={<UserSignupPage />} />
               <Route path="/verify-email" element={<EmailVerificationPage />} />
