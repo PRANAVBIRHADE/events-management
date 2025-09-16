@@ -113,11 +113,15 @@ const UserProfilePage: React.FC = () => {
       console.log('Fetching profile for user:', user.id);
       console.log('Making Supabase request for profile...');
       
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      const getWithTimeout = Promise.race([
+        supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single(),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('profile fetch timeout')), 7000))
+      ]);
+      const { data, error } = await getWithTimeout;
       
       console.log('Profile fetch result:', { 
         hasData: !!data, 

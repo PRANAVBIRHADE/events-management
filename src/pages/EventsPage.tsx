@@ -98,11 +98,15 @@ const EventsPage: React.FC = () => {
         'events_active_list',
         60000,
         async () => {
-          const { data, error } = await supabase
-            .from('events')
-            .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags,is_active,created_at,updated_at')
-            .eq('is_active', true)
-            .order('event_date', { ascending: true });
+          const getWithTimeout = Promise.race([
+            supabase
+              .from('events')
+              .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags,is_active,created_at,updated_at')
+              .eq('is_active', true)
+              .order('event_date', { ascending: true }),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error('events fetch timeout')), 7000))
+          ]);
+          const { data, error } = await getWithTimeout;
           if (error) throw error;
           return data || [];
         }

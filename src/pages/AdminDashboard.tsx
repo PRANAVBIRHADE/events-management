@@ -163,16 +163,24 @@ const AdminDashboard: React.FC = () => {
 
   const checkAuth = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const getSessionWithTimeout = Promise.race([
+        supabase.auth.getSession(),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 5000))
+      ]);
+      const { data: { session } } = await getSessionWithTimeout;
       
       if (session?.user) {
         // Check if user exists in admin_users table
-        const { data: adminUser, error } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('email', session.user.email)
-          .eq('role', 'admin')
-          .single();
+        const adminQuery = Promise.race([
+          supabase
+            .from('admin_users')
+            .select('*')
+            .eq('email', session.user.email)
+            .eq('role', 'admin')
+            .single(),
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 5000))
+        ]);
+        const { data: adminUser, error } = await adminQuery;
         
         if (error || !adminUser) {
           console.error('User is not authorized admin, access denied:', error);
