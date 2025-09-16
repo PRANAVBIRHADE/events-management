@@ -134,7 +134,21 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     // Wait for AuthContext to finish resolving session on refresh
     if (authLoading) return;
-    checkAuth();
+
+    // Optimistic access: if we previously confirmed this email is admin, allow immediately and verify in background
+    if (user?.email) {
+      const adminKey = `admin_ok:${user.email}`;
+      if (localStorage.getItem(adminKey) === 'true') {
+        setIsAuthenticated(true);
+        // Verify silently without disrupting UI
+        checkAuth(true);
+      } else {
+        checkAuth();
+      }
+    } else {
+      setIsAuthenticated(false);
+    }
+
     const detach = revalidateOnFocus(() => {
       if (isAuthenticated) {
         fetchRegistrations();
@@ -143,7 +157,7 @@ const AdminDashboard: React.FC = () => {
       }
     });
     return detach;
-  }, [authLoading]);
+  }, [authLoading, user?.email]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -164,36 +178,57 @@ const AdminDashboard: React.FC = () => {
     return () => clearTimeout(id);
   }, [rawSearchTerm]);
 
-  const checkAuth = async (): Promise<void> => {
+  const checkAuth = async (silent: boolean = false): Promise<void> => {
     try {
       // Use AuthContext user instead of fetching session to avoid refresh race/timeouts
       if (user?.email) {
         // Check if user exists in admin_users table
-        const adminQuery = Promise.race([
-          supabase
-            .from('admin_users')
-            .select('*')
-            .eq('email', user.email)
-            .eq('role', 'admin')
-            .single(),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 8000))
-        ]);
-        const { data: adminUser, error } = await adminQuery;
+        const tryOnce = async () => {
+          const adminQuery = Promise.race([
+            supabase
+              .from('admin_users')
+              .select('id')
+              .eq('email', user.email)
+              .eq('role', 'admin')
+              .single(),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 8000))
+          ]);
+          return adminQuery;
+        };
+
+        let adminUser: any = null;
+        let error: any = null;
+        const backoffs = [300, 600, 1200];
+        for (let i = 0; i < backoffs.length; i++) {
+          try {
+            const result = await tryOnce();
+            adminUser = result.data;
+            error = result.error;
+            if (!error && adminUser) break;
+          } catch (e) {
+            error = e;
+          }
+          await new Promise(res => setTimeout(res, backoffs[i]));
+        }
         
         if (error || !adminUser) {
           console.error('User is not authorized admin, access denied:', error);
           setIsAuthenticated(false);
+          // Clear optimistic flag
+          try { localStorage.removeItem(`admin_ok:${user.email}`); } catch {}
           return;
         }
         
         console.log('Admin access granted for:', user.email);
         setIsAuthenticated(true);
+        // Persist optimistic flag
+        try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
       } else {
         // If AuthContext resolved and there is no user, not authenticated
         if (!authLoading) setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Auth check error:', error);
+      if (!silent) console.error('Auth check error:', error);
       // Retry on transient timeout without flipping auth state immediately
       if (error instanceof Error && error.message.includes('timeout')) {
         if (sessionRetries.current < 2) {
@@ -205,7 +240,7 @@ const AdminDashboard: React.FC = () => {
       // On hard failure, do not force sign-out here; leave last state to avoid bounce
       if (!isAuthenticated) setIsAuthenticated(false);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
