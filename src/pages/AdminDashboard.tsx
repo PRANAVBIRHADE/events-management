@@ -81,7 +81,7 @@ interface EventFormData {
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [registrations, setRegistrations] = useState<AllRegistration[]>([]);
@@ -164,22 +164,17 @@ const AdminDashboard: React.FC = () => {
 
   const checkAuth = async (): Promise<void> => {
     try {
-      const getSessionWithTimeout = Promise.race([
-        supabase.auth.getSession(),
-        new Promise<any>((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 5000))
-      ]);
-      const { data: { session } } = await getSessionWithTimeout;
-      
-      if (session?.user) {
+      // Use AuthContext user instead of fetching session to avoid refresh race/timeouts
+      if (user?.email) {
         // Check if user exists in admin_users table
         const adminQuery = Promise.race([
           supabase
             .from('admin_users')
             .select('*')
-            .eq('email', session.user.email)
+            .eq('email', user.email)
             .eq('role', 'admin')
             .single(),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 5000))
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 8000))
         ]);
         const { data: adminUser, error } = await adminQuery;
         
@@ -189,7 +184,7 @@ const AdminDashboard: React.FC = () => {
           return;
         }
         
-        console.log('Admin access granted for:', session.user.email);
+        console.log('Admin access granted for:', user.email);
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
@@ -204,7 +199,8 @@ const AdminDashboard: React.FC = () => {
           return checkAuth();
         }
       }
-      setIsAuthenticated(false);
+      // On hard failure, do not force sign-out here; leave last state to avoid bounce
+      if (!isAuthenticated) setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
