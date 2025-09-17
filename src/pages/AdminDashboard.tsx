@@ -182,12 +182,13 @@ const AdminDashboard: React.FC = () => {
     try {
       // Use AuthContext user instead of fetching session to avoid refresh race/timeouts
       if (user?.email) {
+        console.log('[AdminDashboard] Starting admin check for user:', user.email, 'user object:', user);
         // Check if user exists in admin_users table
         const tryOnce = async () => {
           const adminQuery = Promise.race([
             supabase
               .from('admin_users')
-              .select('id')
+              .select('id, email, role')
               .eq('email', user.email)
               .eq('role', 'admin')
               .single(),
@@ -204,22 +205,24 @@ const AdminDashboard: React.FC = () => {
             const result = await tryOnce();
             adminUser = result.data;
             error = result.error;
+            console.log(`[AdminDashboard] Admin check attempt ${i+1}:`, { adminUser, error, result });
             if (!error && adminUser) break;
           } catch (e) {
             error = e;
+            console.error(`[AdminDashboard] Admin check error on attempt ${i+1}:`, e);
           }
           await new Promise(res => setTimeout(res, backoffs[i]));
         }
         
         if (error || !adminUser) {
-          console.error('User is not authorized admin, access denied:', error);
+          console.error('[AdminDashboard] User is not authorized admin, access denied:', error, 'adminUser:', adminUser);
           setIsAuthenticated(false);
           // Clear optimistic flag
           try { localStorage.removeItem(`admin_ok:${user.email}`); } catch {}
           return;
         }
         
-        console.log('Admin access granted for:', user.email);
+        console.log('[AdminDashboard] Admin access granted for:', user.email, 'adminUser:', adminUser);
         setIsAuthenticated(true);
         // Persist optimistic flag
         try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
@@ -228,7 +231,7 @@ const AdminDashboard: React.FC = () => {
         if (!authLoading) setIsAuthenticated(false);
       }
     } catch (error) {
-      if (!silent) console.error('Auth check error:', error);
+      if (!silent) console.error('[AdminDashboard] Auth check error:', error);
       // Retry on transient timeout without flipping auth state immediately
       if (error instanceof Error && error.message.includes('timeout')) {
         if (sessionRetries.current < 2) {
