@@ -29,6 +29,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔐 Admin login attempt started');
+    console.log('📧 Email:', email);
+    console.log('🔑 Password length:', password.length);
+    
     if (!email || !password) {
       setError('Please fill all fields');
       return;
@@ -38,14 +42,21 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     setError('');
 
     try {
+      console.log('🔍 Attempting Supabase authentication...');
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase auth error:', error);
+        throw error;
+      }
+
+      console.log('✅ Supabase authentication successful');
 
       // Check if user exists in admin_users table
+      console.log('🔍 Checking admin_users table...');
       const { data: adminUser, error: adminError } = await supabase
         .from('admin_users')
         .select('*')
@@ -53,16 +64,20 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         .eq('role', 'admin')
         .single();
 
+      console.log('📊 Admin user query result:', { adminUser, adminError });
+
       if (adminError || !adminUser) {
+        console.error('❌ Admin access denied:', adminError);
         setError('Access denied. You are not an authorized administrator.');
         await supabase.auth.signOut(); // Sign out non-admin users
         return;
       }
 
+      console.log('✅ Admin access confirmed:', adminUser);
       setSuccess('Login successful! Welcome to the admin dashboard');
       onLoginSuccess();
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       setError(error.message || 'Invalid credentials');
     } finally {
       setIsLoading(false);
@@ -193,10 +208,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
             {/* Demo Credentials Info */}
             <Box p={4} bg="blue.50" borderRadius="lg" maxW="400px" border="1px solid" borderColor="blue.200">
               <Text fontWeight="bold" fontSize="sm" color="blue.800" mb={2}>
-                Demo Credentials:
+                Admin Credentials:
               </Text>
               <Text fontSize="sm" color="blue.700">
-                Email: admin@freshersparty.com<br />
+                Email: admin@spark2k25.com<br />
                 Password: admin123
               </Text>
             </Box>
