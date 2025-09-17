@@ -183,34 +183,6 @@ const AdminDashboard: React.FC = () => {
       // Use AuthContext user instead of fetching session to avoid refresh race/timeouts
       if (user?.email) {
         console.log('[AdminDashboard] Starting admin check for user:', user.email, 'user object:', user);
-        
-        // Use email-based admin check (same as AdminRoute)
-        console.log('[AdminDashboard] Using email-based admin check');
-        
-        const adminEmails = [
-          'admin@spark2k25.com',
-          'admin@freshersparty.com'
-        ];
-        
-        const isAdminEmail = adminEmails.includes(user.email);
-        console.log('[AdminDashboard] Checking email:', user.email);
-        console.log('[AdminDashboard] Is admin email:', isAdminEmail);
-        
-        if (!isAdminEmail) {
-          console.error('[AdminDashboard] User is not an authorized admin email, access denied');
-          setIsAuthenticated(false);
-          // Clear optimistic flag
-          try { localStorage.removeItem(`admin_ok:${user.email}`); } catch {}
-          return;
-        }
-        
-        console.log('[AdminDashboard] Admin access granted for:', user.email);
-        setIsAuthenticated(true);
-        // Persist optimistic flag
-        try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
-        
-        // TODO: Re-enable database-based admin check once RLS is fixed
-        /*
         // Check if user exists in admin_users table
         const tryOnce = async () => {
           const adminQuery = Promise.race([
@@ -254,7 +226,6 @@ const AdminDashboard: React.FC = () => {
         setIsAuthenticated(true);
         // Persist optimistic flag
         try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
-        */
       } else {
         // If AuthContext resolved and there is no user, not authenticated
         if (!authLoading) setIsAuthenticated(false);

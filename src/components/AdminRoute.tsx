@@ -36,30 +36,6 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 			setChecking(true);
 			setError(null);
 			try {
-				// For now, let's use a simple email-based check
-				// This is a temporary solution until we fix the admin_users table
-				console.log('🔍 AdminRoute: Using simple email-based admin check');
-				
-				const adminEmails = [
-					'admin@spark2k25.com',
-					'admin@freshersparty.com'
-				];
-				
-				const isAdminEmail = adminEmails.includes(user.email);
-				console.log('📧 AdminRoute: Checking email:', user.email);
-				console.log('✅ AdminRoute: Is admin email:', isAdminEmail);
-				
-				if (isAdminEmail) {
-					console.log('✅ AdminRoute: Admin access confirmed via email check');
-					setIsAdmin(true);
-				} else {
-					console.log('❌ AdminRoute: Not an admin email');
-					setIsAdmin(false);
-					setError('Not an authorized administrator');
-				}
-				
-				// TODO: Re-enable admin_users table check once RLS is fixed
-				/*
 				const backoffs = [0, 300, 600];
 				for (let i = 0; i < backoffs.length; i++) {
 					if (backoffs[i]) {
@@ -88,7 +64,6 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 						setError(res.error?.message || 'Not authorized');
 					}
 				}
-				*/
 			} catch (e: any) {
 				console.error('❌ AdminRoute: Verification error:', e);
 				setIsAdmin(false);
