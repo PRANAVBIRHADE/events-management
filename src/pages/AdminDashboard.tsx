@@ -161,9 +161,28 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetchRegistrations();
-      fetchEvents();
-      fetchUsers(); // fetch users on mount
+      // Set loading to true when starting data fetch
+      setIsLoading(true);
+      
+      // Fetch all data in parallel with overall timeout
+      const dataFetchPromise = Promise.allSettled([
+        fetchRegistrations(),
+        fetchEvents(),
+        fetchUsers()
+      ]);
+      
+      const overallTimeout = new Promise((resolve) => 
+        setTimeout(() => {
+          console.log('Overall data fetch timeout reached, setting loading to false');
+          resolve('timeout');
+        }, 15000) // 15 second overall timeout
+      );
+      
+      Promise.race([dataFetchPromise, overallTimeout]).then(() => {
+        // Set loading to false after all data fetching attempts complete or timeout
+        console.log('All data fetching attempts completed, setting loading to false');
+        setIsLoading(false);
+      });
     }
   }, [isAuthenticated]);
 
