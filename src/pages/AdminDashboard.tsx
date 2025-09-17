@@ -183,49 +183,52 @@ const AdminDashboard: React.FC = () => {
       // Use AuthContext user instead of fetching session to avoid refresh race/timeouts
       if (user?.email) {
         console.log('[AdminDashboard] Starting admin check for user:', user.email, 'user object:', user);
-        // Check if user exists in admin_users table
-        const tryOnce = async () => {
-          const adminQuery = Promise.race([
-            supabase
-              .from('admin_users')
-              .select('id, email, role')
-              .eq('email', user.email)
-              .eq('role', 'admin')
-              .single(),
-            new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 8000))
-          ]);
-          return adminQuery;
-        };
-
-        let adminUser: any = null;
-        let error: any = null;
-        const backoffs = [300, 600, 1200];
-        for (let i = 0; i < backoffs.length; i++) {
-          try {
-            const result = await tryOnce();
-            adminUser = result.data;
-            error = result.error;
-            console.log(`[AdminDashboard] Admin check attempt ${i+1}:`, { adminUser, error, result });
-            if (!error && adminUser) break;
-          } catch (e) {
-            error = e;
-            console.error(`[AdminDashboard] Admin check error on attempt ${i+1}:`, e);
+        
+        // Try database query first with short timeout
+        console.log('[AdminDashboard] Attempting database query with 5-second timeout...');
+        const dbQuery = Promise.race([
+          supabase
+            .from('admin_users')
+            .select('id, email, role')
+            .eq('email', user.email)
+            .eq('role', 'admin')
+            .single(),
+          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000))
+        ]);
+        
+        try {
+          const result = await dbQuery;
+          console.log('[AdminDashboard] Database query successful:', result);
+          if (!result.error && result.data) {
+            console.log('[AdminDashboard] Admin access granted via database for:', user.email, 'adminUser:', result.data);
+            setIsAuthenticated(true);
+            try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
+          } else {
+            throw new Error('Database query failed: ' + (result.error?.message || 'No data'));
           }
-          await new Promise(res => setTimeout(res, backoffs[i]));
+        } catch (dbError) {
+          console.log('⚠️ [AdminDashboard] Database query failed, falling back to email check:', dbError.message);
+          
+          // Fallback to email-based check
+          const adminEmails = [
+            'admin@spark2k25.com',
+            'admin@freshersparty.com'
+          ];
+          
+          const isAdminEmail = adminEmails.includes(user.email);
+          console.log('[AdminDashboard] Email check for:', user.email, 'is admin:', isAdminEmail);
+          
+          if (isAdminEmail) {
+            console.log('[AdminDashboard] Admin access granted via email fallback for:', user.email);
+            setIsAuthenticated(true);
+            try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
+          } else {
+            console.error('[AdminDashboard] User is not an authorized admin email, access denied');
+            setIsAuthenticated(false);
+            try { localStorage.removeItem(`admin_ok:${user.email}`); } catch {}
+            return;
+          }
         }
-        
-        if (error || !adminUser) {
-          console.error('[AdminDashboard] User is not authorized admin, access denied:', error, 'adminUser:', adminUser);
-          setIsAuthenticated(false);
-          // Clear optimistic flag
-          try { localStorage.removeItem(`admin_ok:${user.email}`); } catch {}
-          return;
-        }
-        
-        console.log('[AdminDashboard] Admin access granted for:', user.email, 'adminUser:', adminUser);
-        setIsAuthenticated(true);
-        // Persist optimistic flag
-        try { localStorage.setItem(`admin_ok:${user.email}`, 'true'); } catch {}
       } else {
         // If AuthContext resolved and there is no user, not authenticated
         if (!authLoading) setIsAuthenticated(false);

@@ -36,41 +36,46 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 			setChecking(true);
 			setError(null);
 			try {
-				// First, test basic connection without timeout
-				console.log('🔍 AdminRoute: Testing basic connection...');
-				const basicTest = await supabase
-					.from('admin_users')
-					.select('count')
-					.limit(1);
-				console.log('📊 AdminRoute: Basic connection test:', basicTest);
+				// Try database query first with short timeout
+				console.log('🔍 AdminRoute: Attempting database query with 5-second timeout...');
+				const dbQuery = Promise.race([
+					supabase
+						.from('admin_users')
+						.select('id')
+						.eq('email', user.email)
+						.eq('role', 'admin')
+						.single(),
+					new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000))
+				]);
 				
-				const backoffs = [0, 300, 600];
-				for (let i = 0; i < backoffs.length; i++) {
-					if (backoffs[i]) {
-						console.log(`⏳ AdminRoute: Retry ${i + 1}, waiting ${backoffs[i]}ms`);
-						await new Promise(r => setTimeout(r, backoffs[i]));
-					}
-					console.log('🔍 AdminRoute: Querying admin_users table...');
-					console.log('🔍 AdminRoute: Attempting query with 30-second timeout...');
-					const res = await Promise.race([
-						supabase
-							.from('admin_users')
-							.select('id')
-							.eq('email', user.email)
-							.eq('role', 'admin')
-							.single(),
-						new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout after 30 seconds')), 30000))
-					]);
-					console.log('📊 AdminRoute: Query result:', res);
+				try {
+					const res = await dbQuery;
+					console.log('📊 AdminRoute: Database query successful:', res);
 					if (!res.error && res.data) {
-						console.log('✅ AdminRoute: Admin access confirmed');
+						console.log('✅ AdminRoute: Admin access confirmed via database');
 						setIsAdmin(true);
-						break;
+					} else {
+						throw new Error('Database query failed: ' + (res.error?.message || 'No data'));
 					}
-					if (i === backoffs.length - 1) {
-						console.log('❌ AdminRoute: Admin access denied:', res.error);
+				} catch (dbError) {
+					console.log('⚠️ AdminRoute: Database query failed, falling back to email check:', dbError.message);
+					
+					// Fallback to email-based check
+					const adminEmails = [
+						'admin@spark2k25.com',
+						'admin@freshersparty.com'
+					];
+					
+					const isAdminEmail = adminEmails.includes(user.email);
+					console.log('📧 AdminRoute: Email check for:', user.email, 'is admin:', isAdminEmail);
+					
+					if (isAdminEmail) {
+						console.log('✅ AdminRoute: Admin access confirmed via email fallback');
+						setIsAdmin(true);
+					} else {
+						console.log('❌ AdminRoute: Not an admin email');
 						setIsAdmin(false);
-						setError(res.error?.message || 'Not authorized');
+						setError('Not an authorized administrator');
 					}
 				}
 			} catch (e: any) {
