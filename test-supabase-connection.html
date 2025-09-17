@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // You'll need to replace these with your actual Supabase credentials
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testConnection() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                resultsDiv.innerHTML = '<p>🔍 Testing Supabase connection...</p>';
+                
+                // Test 1: Basic connection
+                const { data, error } = await supabase
+                    .from('admin_users')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    resultsDiv.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+                    return;
+                }
+                
+                resultsDiv.innerHTML += `<p>✅ Connection successful!</p>`;
+                resultsDiv.innerHTML += `<p>📊 Data: ${JSON.stringify(data, null, 2)}</p>`;
+                
+                // Test 2: Specific admin user query
+                const { data: adminData, error: adminError } = await supabase
+                    .from('admin_users')
+                    .select('*')
+                    .eq('email', 'admin@spark2k25.com')
+                    .single();
+                
+                if (adminError) {
+                    resultsDiv.innerHTML += `<p>❌ Admin query error: ${adminError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>✅ Admin user found: ${JSON.stringify(adminData, null, 2)}</p>`;
+                }
+                
+            } catch (err) {
+                resultsDiv.innerHTML += `<p>❌ Connection failed: ${err.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        testConnection();
+    </script>
+</body>
+</html>

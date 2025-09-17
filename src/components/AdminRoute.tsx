@@ -36,6 +36,14 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 			setChecking(true);
 			setError(null);
 			try {
+				// First, test basic connection without timeout
+				console.log('🔍 AdminRoute: Testing basic connection...');
+				const basicTest = await supabase
+					.from('admin_users')
+					.select('count')
+					.limit(1);
+				console.log('📊 AdminRoute: Basic connection test:', basicTest);
+				
 				const backoffs = [0, 300, 600];
 				for (let i = 0; i < backoffs.length; i++) {
 					if (backoffs[i]) {
@@ -43,6 +51,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 						await new Promise(r => setTimeout(r, backoffs[i]));
 					}
 					console.log('🔍 AdminRoute: Querying admin_users table...');
+					console.log('🔍 AdminRoute: Attempting query with 30-second timeout...');
 					const res = await Promise.race([
 						supabase
 							.from('admin_users')
@@ -50,7 +59,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 							.eq('email', user.email)
 							.eq('role', 'admin')
 							.single(),
-						new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 8000))
+						new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout after 30 seconds')), 30000))
 					]);
 					console.log('📊 AdminRoute: Query result:', res);
 					if (!res.error && res.data) {
