@@ -17,18 +17,32 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 
 	React.useEffect(() => {
 		const verify = async () => {
-			if (loading) return;
+			console.log('🔍 AdminRoute: Starting admin verification');
+			console.log('👤 User:', user);
+			console.log('⏳ Loading:', loading);
+			
+			if (loading) {
+				console.log('⏳ AdminRoute: Still loading, waiting...');
+				return;
+			}
 			if (!user?.email) {
+				console.log('❌ AdminRoute: No user email, not admin');
 				setChecking(false);
 				setIsAdmin(false);
 				return;
 			}
+			
+			console.log('🔍 AdminRoute: Verifying admin access for:', user.email);
 			setChecking(true);
 			setError(null);
 			try {
 				const backoffs = [0, 300, 600];
 				for (let i = 0; i < backoffs.length; i++) {
-					if (backoffs[i]) await new Promise(r => setTimeout(r, backoffs[i]));
+					if (backoffs[i]) {
+						console.log(`⏳ AdminRoute: Retry ${i + 1}, waiting ${backoffs[i]}ms`);
+						await new Promise(r => setTimeout(r, backoffs[i]));
+					}
+					console.log('🔍 AdminRoute: Querying admin_users table...');
 					const res = await Promise.race([
 						supabase
 							.from('admin_users')
@@ -38,19 +52,24 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 							.single(),
 						new Promise<any>((_, reject) => setTimeout(() => reject(new Error('admin_users check timeout')), 8000))
 					]);
+					console.log('📊 AdminRoute: Query result:', res);
 					if (!res.error && res.data) {
+						console.log('✅ AdminRoute: Admin access confirmed');
 						setIsAdmin(true);
 						break;
 					}
 					if (i === backoffs.length - 1) {
+						console.log('❌ AdminRoute: Admin access denied:', res.error);
 						setIsAdmin(false);
 						setError(res.error?.message || 'Not authorized');
 					}
 				}
 			} catch (e: any) {
+				console.error('❌ AdminRoute: Verification error:', e);
 				setIsAdmin(false);
 				setError(e?.message || 'Authorization failed');
 			} finally {
+				console.log('🏁 AdminRoute: Verification complete');
 				setChecking(false);
 			}
 		};
