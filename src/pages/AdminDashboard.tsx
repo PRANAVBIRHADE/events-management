@@ -253,10 +253,18 @@ const AdminDashboard: React.FC = () => {
   const fetchRegistrations = async () => {
     try {
       console.log('Fetching registrations from all_registrations view...');
-      const { data, error } = await supabase
+      
+      // Add timeout to prevent hanging
+      const queryPromise = supabase
         .from('all_registrations')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Registrations query timeout')), 10000)
+      );
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('Error fetching registrations:', error);
@@ -265,18 +273,28 @@ const AdminDashboard: React.FC = () => {
       
       console.log('Fetched registrations:', data?.length || 0, 'records');
       setRegistrations(data || []);
-    } catch (error) {
-      console.error('Error fetching registrations:', error);
+    } catch (error: any) {
+      console.error('Error fetching registrations:', error?.message || 'Unknown error');
+      // Set empty array on error to prevent loading state
+      setRegistrations([]);
     }
   };
 
   const fetchEvents = async () => {
     try {
       console.log('Fetching events...');
-      const { data, error } = await supabase
+      
+      // Add timeout to prevent hanging
+      const queryPromise = supabase
         .from('events')
         .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags,is_active,created_at,updated_at')
         .order('event_date', { ascending: true });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Events query timeout')), 10000)
+      );
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('Supabase fetch error:', error);
@@ -285,10 +303,10 @@ const AdminDashboard: React.FC = () => {
       
       console.log('Events fetched successfully:', data);
       setEvents(data || []);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Please check your connection.';
-      alert(`Error fetching events: ${errorMessage}`);
+    } catch (error: any) {
+      console.error('Error fetching events:', error?.message || 'Unknown error');
+      // Set empty array on error to prevent loading state
+      setEvents([]);
     }
   };
 
@@ -689,14 +707,27 @@ const AdminDashboard: React.FC = () => {
   // Fetch users
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching users...');
+      
+      // Add timeout to prevent hanging
+      const queryPromise = supabase
         .from('user_profiles')
         .select('id,user_id,full_name,email,studying_year,mobile_number,is_verified,created_at,updated_at')
         .order('created_at', { ascending: false });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Users query timeout')), 10000)
+      );
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      
       if (error) throw error;
+      console.log('Users fetched successfully:', data?.length || 0, 'users');
       setUsers(data || []);
-    } catch (error) {
-      console.error('Error fetching users:', error);
+    } catch (error: any) {
+      console.error('Error fetching users:', error?.message || 'Unknown error');
+      // Set empty array on error to prevent loading state
+      setUsers([]);
     }
   };
 
