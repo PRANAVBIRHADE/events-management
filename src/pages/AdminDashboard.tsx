@@ -1,5 +1,6 @@
 // Trigger redeploy: dummy comment
 import React, { useState, useEffect } from 'react';
+import EnvDebug from '../components/EnvDebug';
 import {
   Box,
   Container,
@@ -816,6 +817,13 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Box minH="100vh" bg="gray.50">
+      {/* Environment Debug - Remove this after fixing */}
+      <Box p={4} bg="yellow.100" borderBottom="2px solid" borderColor="yellow.300">
+        <Container maxW="container.xl">
+          <EnvDebug />
+        </Container>
+      </Box>
+      
       {/* Header */}
       <Box bg="white" shadow="sm" borderBottom="1px solid" borderColor="gray.200">
         <Container maxW="container.xl" py={4}>
