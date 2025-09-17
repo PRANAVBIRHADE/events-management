@@ -206,8 +206,8 @@ const AdminDashboard: React.FC = () => {
           } else {
             throw new Error('Database query failed: ' + (result.error?.message || 'No data'));
           }
-        } catch (dbError) {
-          console.log('⚠️ [AdminDashboard] Database query failed, falling back to email check:', dbError.message);
+        } catch (dbError: any) {
+          console.log('⚠️ [AdminDashboard] Database query failed, falling back to email check:', dbError?.message || 'Unknown error');
           
           // Fallback to email-based check
           const adminEmails = [

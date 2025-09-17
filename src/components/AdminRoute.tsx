@@ -57,8 +57,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 					} else {
 						throw new Error('Database query failed: ' + (res.error?.message || 'No data'));
 					}
-				} catch (dbError) {
-					console.log('⚠️ AdminRoute: Database query failed, falling back to email check:', dbError.message);
+				} catch (dbError: any) {
+					console.log('⚠️ AdminRoute: Database query failed, falling back to email check:', dbError?.message || 'Unknown error');
 					
 					// Fallback to email-based check
 					const adminEmails = [
