@@ -20,11 +20,10 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.0",
     "react-scripts": "^5.0.1",
-    "typescript": "^5.4.5"
+    "typescript": "4.9.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.62",
-    "@types/react-dom": "^18.2.19",
-    "@types/react-router-dom": "^5.3.3"
+    "@types/react-dom": "^18.2.19"
   }
 }
