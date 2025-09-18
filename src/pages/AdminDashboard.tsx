@@ -820,8 +820,6 @@ const AdminDashboard: React.FC = () => {
   const paidRegistrations = registrations.filter(reg => reg.payment_status === 'paid').length;
   const checkedInRegistrations = registrations.filter(reg => reg.is_checked_in).length;
 
-  // Debug log for Users TabPanel
-  console.log('Users TabPanel users state:', users);
 
   return (
     <Box minH="100vh" bg="gray.50">
