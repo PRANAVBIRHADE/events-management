@@ -43,7 +43,6 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
 						.from('admin_users')
 						.select('id')
 						.eq('email', user.email)
-						.eq('role', 'admin')
 						.single(),
 					new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000))
 				]);

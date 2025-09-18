@@ -59,7 +59,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .from('admin_users')
                 .select('id')
                 .eq('email', session.user.email as any)
-                .eq('role', 'admin')
                 .maybeSingle();
 
               if (adminUser) {
@@ -124,7 +123,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .from('admin_users')
                 .select('id')
                 .eq('email', session.user.email as any)
-                .eq('role', 'admin')
                 .maybeSingle();
 
               if (adminUser) {

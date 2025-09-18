@@ -209,9 +209,8 @@ const AdminDashboard: React.FC = () => {
         const dbQuery = Promise.race([
           supabase
             .from('admin_users')
-            .select('id, email, role')
+            .select('id, email')
             .eq('email', user.email)
-            .eq('role', 'admin')
             .single(),
           new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000))
         ]);

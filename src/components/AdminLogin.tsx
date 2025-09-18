@@ -61,7 +61,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         .from('admin_users')
         .select('*')
         .eq('email', email)
-        .eq('role', 'admin')
         .single();
 
       console.log('📊 Admin user query result:', { adminUser, adminError });

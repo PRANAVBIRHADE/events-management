@@ -190,7 +190,6 @@ const UserProfilePage: React.FC = () => {
         .from('admin_users')
         .select('id')
         .eq('email', user.email)
-        .eq('role', 'admin')
         .maybeSingle();
       if (error) return;
       setIsAdmin(!!data);
