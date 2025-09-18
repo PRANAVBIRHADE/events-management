@@ -273,23 +273,14 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Fetching registrations from registrations table...');
       
-      // Add timeout to prevent hanging
+      // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('registrations')
-        .select(`
-          id,
-          user_id,
-          event_id,
-          payment_status,
-          checked_in,
-          created_at,
-          user_profiles!inner(full_name, email),
-          events!inner(name, event_date, location)
-        `)
+        .select('id, user_id, event_id, payment_status, checked_in, created_at')
         .order('created_at', { ascending: false });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Registrations query timeout')), 10000)
+        setTimeout(() => reject(new Error('Registrations query timeout')), 5000)
       );
       
       const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -312,14 +303,14 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Fetching events...');
       
-      // Add timeout to prevent hanging
+      // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('events')
-        .select('id,name,description,event_date,location,category,event_type,price,max_capacity,current_registrations,tags,is_active,created_at,updated_at')
+        .select('id, name, description, event_date, location, price, is_active')
         .order('event_date', { ascending: true });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Events query timeout')), 10000)
+        setTimeout(() => reject(new Error('Events query timeout')), 5000)
       );
       
       const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -737,14 +728,14 @@ const AdminDashboard: React.FC = () => {
     try {
       console.log('Fetching users...');
       
-      // Add timeout to prevent hanging
+      // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('user_profiles')
-        .select('id,full_name,email,created_at')
+        .select('id, full_name, email, created_at')
         .order('created_at', { ascending: false });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Users query timeout')), 10000)
+        setTimeout(() => reject(new Error('Users query timeout')), 5000)
       );
       
       const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
