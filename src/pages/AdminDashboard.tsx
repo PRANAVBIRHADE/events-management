@@ -264,18 +264,23 @@ const AdminDashboard: React.FC = () => {
       // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('registrations')
-        .select('id, user_id, event_id, full_name, email, mobile_number, studying_year, registration_type, payment_status, payment_id, qr_code, checked_in as is_checked_in, created_at, updated_at')
+        .select('id, user_id, event_id, full_name, email, mobile_number, studying_year, registration_type, payment_status, payment_id, qr_code, checked_in, created_at, updated_at')
         .order('created_at', { ascending: false });
-      
+
       const { data, error } = await queryPromise;
 
       if (error) {
         console.error('Error fetching registrations:', error);
         throw error;
       }
-      
-      console.log('Fetched registrations:', data?.length || 0, 'records');
-      setRegistrations(data || []);
+
+      const mappedData = (data || []).map((reg: any) => ({
+        ...reg,
+        is_checked_in: reg.checked_in,
+      }));
+
+      console.log('Fetched registrations:', mappedData.length, 'records');
+      setRegistrations(mappedData);
     } catch (error: any) {
       console.error('Error fetching registrations:', error?.message || 'Unknown error');
       // Set empty array on error to prevent loading state
