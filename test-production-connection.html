@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Replace these with your actual Supabase credentials
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        async function testConnection() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing connection...</p>';
+            
+            try {
+                // Test 1: Basic connection
+                console.log('Testing basic connection...');
+                const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
+                
+                if (error) {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Connection failed: ${error.message}</p>`;
+                    return;
+                }
+                
+                resultsDiv.innerHTML += '<p style="color: green;">✅ Basic connection successful</p>';
+                
+                // Test 2: Simple count query
+                console.log('Testing count query...');
+                const startTime = Date.now();
+                const { data: countData, error: countError } = await supabase
+                    .from('user_profiles')
+                    .select('*', { count: 'exact', head: true });
+                
+                const endTime = Date.now();
+                resultsDiv.innerHTML += `<p style="color: green;">✅ Count query completed in ${endTime - startTime}ms</p>`;
+                
+                if (countError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Count query failed: ${countError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>Count result: ${countData}</p>`;
+                }
+                
+                // Test 3: Simple select query
+                console.log('Testing select query...');
+                const selectStartTime = Date.now();
+                const { data: selectData, error: selectError } = await supabase
+                    .from('user_profiles')
+                    .select('id, full_name, email')
+                    .limit(5);
+                
+                const selectEndTime = Date.now();
+                resultsDiv.innerHTML += `<p style="color: green;">✅ Select query completed in ${selectEndTime - selectStartTime}ms</p>`;
+                
+                if (selectError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Select query failed: ${selectError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>Select result: ${JSON.stringify(selectData)}</p>`;
+                }
+                
+                // Test 4: Test admin_users table
+                console.log('Testing admin_users query...');
+                const adminStartTime = Date.now();
+                const { data: adminData, error: adminError } = await supabase
+                    .from('admin_users')
+                    .select('id, email')
+                    .limit(1);
+                
+                const adminEndTime = Date.now();
+                resultsDiv.innerHTML += `<p style="color: green;">✅ Admin query completed in ${adminEndTime - adminStartTime}ms</p>`;
+                
+                if (adminError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">❌ Admin query failed: ${adminError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>Admin result: ${JSON.stringify(adminData)}</p>`;
+                }
+                
+            } catch (err) {
+                resultsDiv.innerHTML += `<p style="color: red;">❌ Test failed: ${err.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        window.onload = testConnection;
+    </script>
+</body>
+</html>

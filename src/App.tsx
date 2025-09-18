@@ -23,6 +23,7 @@ import DebugPage from './pages/DebugPage';
 import MyTicketsPage from './pages/MyTicketsPage';
 import UPIPaymentPage from './pages/UPIPaymentPage';
 import PaymentPendingPage from './pages/PaymentPendingPage';
+import TestConnection from './pages/TestConnection';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Custom theme with party vibes
@@ -120,6 +121,7 @@ function App() {
               <Route path="/user-profile" element={<UserProfilePage />} />
               <Route path="/register/:eventId" element={<EventRegistrationPage />} />
               <Route path="/debug" element={<DebugPage />} />
+              <Route path="/test-connection" element={<TestConnection />} />
               <Route path="/my-tickets" element={<MyTicketsPage />} />
               <Route path="/upi-payment" element={<UPIPaymentPage />} />
               <Route path="/payment-pending" element={<PaymentPendingPage />} />
