@@ -264,7 +264,7 @@ const AdminDashboard: React.FC = () => {
       // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('registrations')
-        .select('id, user_id, event_id, payment_status, created_at')
+        .select('id, user_id, event_id, full_name, email, mobile_number, studying_year, registration_type, payment_status, payment_id, qr_code, checked_in, created_at, updated_at')
         .order('created_at', { ascending: false });
       
       const { data, error } = await queryPromise;
