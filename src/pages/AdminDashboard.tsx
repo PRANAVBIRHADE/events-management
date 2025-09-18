@@ -271,12 +271,21 @@ const AdminDashboard: React.FC = () => {
 
   const fetchRegistrations = async () => {
     try {
-      console.log('Fetching registrations from all_registrations view...');
+      console.log('Fetching registrations from registrations table...');
       
       // Add timeout to prevent hanging
       const queryPromise = supabase
-        .from('all_registrations')
-        .select('*')
+        .from('registrations')
+        .select(`
+          id,
+          user_id,
+          event_id,
+          payment_status,
+          checked_in,
+          created_at,
+          user_profiles!inner(full_name, email),
+          events!inner(name, event_date, location)
+        `)
         .order('created_at', { ascending: false });
       
       const timeoutPromise = new Promise((_, reject) => 
@@ -731,7 +740,7 @@ const AdminDashboard: React.FC = () => {
       // Add timeout to prevent hanging
       const queryPromise = supabase
         .from('user_profiles')
-        .select('id,user_id,full_name,email,studying_year,mobile_number,is_verified,created_at,updated_at')
+        .select('id,full_name,email,created_at')
         .order('created_at', { ascending: false });
       
       const timeoutPromise = new Promise((_, reject) => 
