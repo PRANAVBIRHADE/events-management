@@ -165,22 +165,13 @@ const AdminDashboard: React.FC = () => {
       // Set loading to true when starting data fetch
       setIsLoading(true);
       
-      // Fetch all data in parallel with overall timeout
-      const dataFetchPromise = Promise.allSettled([
+      // Fetch all data in parallel
+      Promise.allSettled([
         fetchRegistrations(),
         fetchEvents(),
         fetchUsers()
-      ]);
-      
-      const overallTimeout = new Promise((resolve) => 
-        setTimeout(() => {
-          console.log('Overall data fetch timeout reached, setting loading to false');
-          resolve('timeout');
-        }, 15000) // 15 second overall timeout
-      );
-      
-      Promise.race([dataFetchPromise, overallTimeout]).then(() => {
-        // Set loading to false after all data fetching attempts complete or timeout
+      ]).then(() => {
+        // Set loading to false after all data fetching attempts complete
         console.log('All data fetching attempts completed, setting loading to false');
         setIsLoading(false);
       });
@@ -204,16 +195,13 @@ const AdminDashboard: React.FC = () => {
       if (user?.email) {
         console.log('[AdminDashboard] Starting admin check for user:', user.email, 'user object:', user);
         
-        // Try database query first with short timeout
-        console.log('[AdminDashboard] Attempting database query with 5-second timeout...');
-        const dbQuery = Promise.race([
-          supabase
-            .from('admin_users')
-            .select('id, email')
-            .eq('email', user.email)
-            .single(),
-          new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000))
-        ]);
+        // Try database query first
+        console.log('[AdminDashboard] Attempting database query...');
+        const dbQuery = supabase
+          .from('admin_users')
+          .select('id, email')
+          .eq('email', user.email)
+          .single();
         
         try {
           const result = await dbQuery;
@@ -276,14 +264,10 @@ const AdminDashboard: React.FC = () => {
       // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('registrations')
-        .select('id, user_id, event_id, payment_status, checked_in, created_at')
+        .select('id, user_id, event_id, payment_status, created_at')
         .order('created_at', { ascending: false });
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Registrations query timeout')), 5000)
-      );
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const { data, error } = await queryPromise;
 
       if (error) {
         console.error('Error fetching registrations:', error);
@@ -306,14 +290,10 @@ const AdminDashboard: React.FC = () => {
       // Simplified query - just basic fields first
       const queryPromise = supabase
         .from('events')
-        .select('id, name, description, event_date, location, price, is_active')
+        .select('id, name, description, event_date, location, price')
         .order('event_date', { ascending: true });
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Events query timeout')), 5000)
-      );
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const { data, error } = await queryPromise;
 
       if (error) {
         console.error('Supabase fetch error:', error);
@@ -734,11 +714,7 @@ const AdminDashboard: React.FC = () => {
         .select('id, full_name, email, created_at')
         .order('created_at', { ascending: false });
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Users query timeout')), 5000)
-      );
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      const { data, error } = await queryPromise;
       
       if (error) throw error;
       console.log('Users fetched successfully:', data?.length || 0, 'users');
