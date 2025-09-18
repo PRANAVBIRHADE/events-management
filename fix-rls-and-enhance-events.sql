@@ -198,3 +198,4 @@ INSERT INTO events (
 -- Grant necessary permissions
 GRANT EXECUTE ON FUNCTION get_event_price_for_year(UUID, INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION is_event_free_for_year(UUID, INTEGER) TO authenticated;
+

@@ -59,6 +59,13 @@ const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const price = getEventPrice(event, userProfile);
+  const safeEventType = (event.event_type || 'unknown').toString().toLowerCase();
+  const eventTypeLabel = safeEventType.toUpperCase();
+  const locationLabel = event.location || 'TBA';
+  const safeCurrentRegistrations = typeof event.current_registrations === 'number' ? event.current_registrations : 0;
+  const safeMaxCapacity = event.max_capacity ?? '∞';
+  const eventDateObj = event.event_date ? new Date(event.event_date) : null;
+  const eventDateValid = eventDateObj && !isNaN(eventDateObj.getTime());
 
   return (
     <MotionCard
@@ -76,10 +83,10 @@ const EventCard: React.FC<EventCardProps> = ({
         <VStack spacing={2} align="start">
           <HStack>
             <Badge colorScheme="blue" fontSize="sm">
-              {new Date(event.event_date).toLocaleDateString()}
+              {eventDateValid ? eventDateObj!.toLocaleDateString() : 'DATE TBA'}
             </Badge>
-            <Badge colorScheme={event.event_type === 'free' ? 'green' : 'blue'} fontSize="sm">
-              {event.event_type.toUpperCase()}
+            <Badge colorScheme={safeEventType === 'free' ? 'green' : 'blue'} fontSize="sm">
+              {eventTypeLabel}
             </Badge>
             {userProfile && (
               <Badge colorScheme={price === 0 ? 'green' : 'yellow'} fontSize="sm">
@@ -101,17 +108,17 @@ const EventCard: React.FC<EventCardProps> = ({
         <VStack spacing={4} align="stretch">
           <HStack spacing={2} color="rgba(255,255,255,0.7)" fontSize="sm">
             <Icon as={FaMapMarkerAlt} />
-            <Text>{event.location}</Text>
+            <Text>{locationLabel}</Text>
           </HStack>
           <HStack spacing={2} color="rgba(255,255,255,0.7)" fontSize="sm">
             <Icon as={FaCalendarAlt} />
-            <Text>{new Date(event.event_date).toLocaleString('en-US', {
+            <Text>{eventDateValid ? eventDateObj!.toLocaleString('en-US', {
               weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            })}</Text>
+            }) : 'Schedule TBA'}</Text>
           </HStack>
           <HStack spacing={2} color="rgba(255,255,255,0.7)" fontSize="sm">
             <Icon as={FaUsers} />
-            <Text>{event.current_registrations}/{event.max_capacity || '∞'} registered</Text>
+            <Text>{safeCurrentRegistrations}/{safeMaxCapacity} registered</Text>
           </HStack>
           <Divider borderColor="rgba(255,255,255,0.2)" />
           {showRegisterButton && onRegister && (
